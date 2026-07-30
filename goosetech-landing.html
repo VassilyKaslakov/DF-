@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GooseTech — 游戏智能工具 | Delta Force Tools</title>
+<style>
+:root {
+  --bg:#080c10; --surface:#0f161c; --border:#1e2a36;
+  --text:#c8d6e5; --muted:#60758a;
+  --accent:#4da6ff; --accent2:#22d3a0; --warn:#f0a040;
+  --grad1:linear-gradient(135deg,#0a1622 0%,#0f1f30 50%,#0a1a28 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.6;overflow-x:hidden;
+}
+
+/* ── Navigation ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,12,16,0.85);backdrop-filter:blur(20px)saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;
+}
+nav .logo{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:800;color:#fff;text-decoration:none;}
+nav .logo .icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+nav .links{display:flex;gap:28px;list-style:none;}
+nav .links a{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:500;transition:0.2s;}
+nav .links a:hover{color:#fff;}
+nav .cta-btn{
+  background:var(--accent);color:#000;border:none;padding:8px 18px;
+  border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;transition:0.2s;
+  text-decoration:none;
+}
+nav .cta-btn:hover{background:#6abfff;transform:translateY(-1px);box-shadow:0 4px 20px rgba(77,166,255,0.35);}
+
+/* ── Hero ── */
+.hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--grad1);position:relative;overflow:hidden;padding:120px 40px 80px;
+}
+.hero::before{
+  content:'';position:absolute;top:-40%;right:-20%;width:800px;height:800px;
+  background:radial-gradient(circle,rgba(77,166,255,0.08)0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;bottom:-30%;left:-15%;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(34,211,160,0.06)0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.hero-content{max-width:800px;text-align:center;position:relative;z-index:1;}
+.hero-content .badge{
+  display:inline-block;padding:4px 14px;border:1px solid rgba(77,166,255,0.3);
+  border-radius:20px;font-size:0.75rem;color:var(--accent);margin-bottom:24px;letter-spacing:1px;
+}
+.hero h1{font-size:3.2rem;font-weight:900;color:#fff;line-height:1.2;margin-bottom:18px;}
+.hero h1 .hl{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:560px;margin:0 auto 36px;}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.hero-btns .btn-primary{
+  background:var(--accent);color:#000;padding:12px 30px;border-radius:8px;
+  font-weight:700;font-size:0.9rem;border:none;cursor:pointer;transition:0.2s;text-decoration:none;
+}
+.hero-btns .btn-primary:hover{background:#6abfff;transform:translateY(-2px);box-shadow:0 8px 30px rgba(77,166,255,0.35);}
+.hero-btns .btn-secondary{
+  background:rgba(255,255,255,0.04);color:#fff;padding:12px 30px;border-radius:8px;
+  font-weight:600;font-size:0.9rem;border:1px solid rgba(255,255,255,0.12);cursor:pointer;
+  transition:0.2s;text-decoration:none;
+}
+.hero-btns .btn-secondary:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.25);}
+
+/* ── Stats bar ── */
+.stats-bar{
+  display:flex;gap:50px;justify-content:center;padding:40px 20px;
+  background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.stat-item{text-align:center;}
+.stat-item .num{font-size:2rem;font-weight:800;color:#fff;}
+.stat-item .num.g{color:var(--accent2);}
+.stat-item .num.b{color:var(--accent);}
+.stat-item .label{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+
+/* ── Section ── */
+section{padding:100px 40px;}
+.section-header{text-align:center;margin-bottom:70px;}
+.section-header h2{font-size:2.2rem;font-weight:800;color:#fff;margin-bottom:12px;}
+.section-header p{color:var(--muted);font-size:0.95rem;max-width:500px;margin:0 auto;}
+.section-header .tag{display:inline-block;padding:3px 12px;border-radius:20px;font-size:0.7rem;font-weight:600;margin-bottom:14px;letter-spacing:1px;}
+.tag-products{background:rgba(77,166,255,0.1);color:var(--accent);}
+.tag-tech{background:rgba(34,211,160,0.1);color:var(--accent2);}
+
+/* ── Products ── */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:28px;max-width:1200px;margin:0 auto;}
+.product-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:36px 32px;transition:0.25s;position:relative;overflow:hidden;
+}
+.product-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,0.4);}
+.product-card .p-icon{font-size:2.4rem;margin-bottom:16px;}
+.product-card h3{font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:8px;}
+.product-card .p-ver{font-size:0.7rem;color:var(--accent);font-weight:600;margin-bottom:14px;}
+.product-card p{color:var(--muted);font-size:0.88rem;line-height:1.7;margin-bottom:20px;}
+.product-card .features{list-style:none;margin-bottom:20px;}
+.product-card .features li{font-size:0.82rem;color:var(--text);padding:4px 0;padding-left:20px;position:relative;}
+.product-card .features li::before{content:'✓';position:absolute;left:0;color:var(--accent2);font-weight:700;}
+.product-card .tech-stack{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
+.product-card .tech-stack span{
+  padding:3px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:5px;font-size:0.68rem;color:var(--muted);font-family:'SF Mono','Consolas',monospace;
+}
+
+/* ── Architecture ── */
+.arch-diagram{
+  max-width:1000px;margin:0 auto;background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:40px;overflow-x:auto;
+}
+.arch-flow{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;min-width:700px;}
+.arch-node{
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;
+  padding:18px 24px;text-align:center;min-width:130px;
+}
+.arch-node .an-title{font-weight:700;font-size:0.82rem;color:#fff;margin-bottom:4px;}
+.arch-node .an-sub{font-size:0.68rem;color:var(--muted);}
+.arch-arrow{color:var(--accent);font-size:1.5rem;font-weight:700;}
+.arch-node.green{border-color:rgba(34,211,160,0.3);}
+.arch-node.blue{border-color:rgba(77,166,255,0.3);}
+
+/* ── Screenshots ── */
+.screenshots-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1200px;margin:0 auto;}
+.screenshot-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  transition:0.2s;
+}
+.screenshot-card:hover{border-color:rgba(255,255,255,0.2);}
+.screenshot-card .sc-placeholder{
+  height:200px;background:rgba(255,255,255,0.02);display:flex;align-items:center;
+  justify-content:center;font-size:3rem;color:var(--muted);
+  border-bottom:1px solid var(--border);
+}
+.screenshot-card .sc-label{padding:12px 16px;font-size:0.78rem;color:var(--text);font-weight:600;}
+.screenshot-card .sc-sub{padding:0 16px 14px;font-size:0.7rem;color:var(--muted);}
+
+/* ── Specs Table ── */
+.specs-table{
+  max-width:900px;margin:0 auto;width:100%;border-collapse:collapse;
+}
+.specs-table th,.specs-table td{padding:12px 18px;text-align:left;border-bottom:1px solid var(--border);font-size:0.85rem;}
+.specs-table th{color:var(--muted);font-weight:600;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;}
+.specs-table tr:hover td{background:rgba(255,255,255,0.02);}
+.specs-table td:first-child{color:#fff;font-weight:600;}
+
+/* ── CTA Section ── */
+.cta-section{
+  text-align:center;padding:100px 40px;
+  background:linear-gradient(180deg,transparent 0%,rgba(77,166,255,0.04)50%,transparent 100%);
+}
+.cta-section h2{font-size:2rem;font-weight:800;color:#fff;margin-bottom:14px;}
+.cta-section p{color:var(--muted);margin-bottom:28px;font-size:0.95rem;}
+
+/* ── Footer ── */
+footer{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:50px 40px 30px;text-align:center;
+}
+footer .flogo{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:10px;}
+footer p{color:var(--muted);font-size:0.78rem;}
+footer .links{display:flex;gap:24px;justify-content:center;margin:16px 0;flex-wrap:wrap;}
+footer .links a{color:var(--muted);text-decoration:none;font-size:0.78rem;transition:0.2s;}
+footer .links a:hover{color:#fff;}
+footer .copyright{color:#3a5068;font-size:0.7rem;margin-top:20px;}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  nav .links{display:none;}
+  .hero h1{font-size:2rem;}
+  .products-grid{grid-template-columns:1fr;}
+  .stats-bar{gap:24px;flex-wrap:wrap;}
+  section{padding:60px 16px;}
+  .arch-flow{flex-direction:column;}
+  .arch-arrow{transform:rotate(90deg);}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav>
+  <a href="goosetech-radar-landing.html" class="logo">
+    <span class="icon">🪿</span>
+    GooseTech
+  </a>
+  <ul class="links">
+    <li><a href="goosetech-radar-landing.html">🏠 主站</a></li>
+    <li><a href="#products">产品</a></li>
+    <li><a href="goosetech-weapons.html">武器库</a></li>
+    <li><a href="goosetech-ttk.html">TTK 计算器</a></li>
+    <li><a href="goosetech-draw.html">战备抽签</a></li>
+    <li><a href="#screenshots">预览</a></li>
+    <li><a href="#specs">规格</a></li>
+    <li><a href="#contact">联系</a></li>
+  </ul>
+  <a href="goosetech-weapons.html" class="cta-btn">武器数据库</a>
+</nav>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="badge">🎯 DELTA FORCE 游戏智能工具</div>
+    <h1>为 <span class="hl">三角洲行动</span> 打造的<br>专业级工具套件</h1>
+    <p>
+      GooseTech 提供武器数据库、TTK 计算器、实时地图雷达与自动化制造工具，
+      基于数据建模、Canvas 渲染引擎、WebSocket 实时通信与 OCR 视觉识别技术，
+      为三角洲行动玩家带来专业、高效的游戏辅助体验。
+    </p>
+    <div class="hero-btns">
+      <a href="#products" class="btn-primary">🛰️ 探索产品</a>
+      <a href="#architecture" class="btn-secondary">📐 技术架构</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ STATS ════════════ -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="num g">5+</div>
+    <div class="label">支持游戏地图</div>
+  </div>
+  <div class="stat-item">
+    <div class="num b">4人</div>
+    <div class="label">同时观战上限</div>
+  </div>
+  <div class="stat-item">
+    <div class="num g">50ms</div>
+    <div class="label">实时数据延迟</div>
+  </div>
+  <div class="stat-item">
+    <div class="num">270w+</div>
+    <div class="label">每日哈夫币利润</div>
+  </div>
+  <div class="stat-item">
+    <div class="num b">2kw</div>
+    <div class="label">每周哈夫币收益</div>
+  </div>
+  <div class="stat-item">
+    <div class="num g">26把</div>
+    <div class="label">收录武器</div>
+  </div>
+  <div class="stat-item">
+    <div class="num b">7类</div>
+    <div class="label">武器类别</div>
+  </div>
+  <div class="stat-item">
+    <div class="num">6级</div>
+    <div class="label">护甲等级</div>
+  </div>
+</div>
+
+<!-- ════════════ PRODUCTS ════════════ -->
+<section id="products">
+  <div class="section-header">
+    <span class="tag tag-products">PRODUCTS</span>
+    <h2>产品套件</h2>
+    <p>两款专业工具，覆盖实时战场感知与自动化资源生产</p>
+  </div>
+
+  <div class="products-grid">
+
+    <!-- Product 1: Web Radar -->
+    <div class="product-card">
+      <div class="p-icon">🛰️</div>
+      <h3>Delta Force Web Radar</h3>
+      <div class="p-ver">REpro Edition · 烽火地带实时雷达</div>
+      <p>
+        嵌入式网页雷达系统，通过 WebSocket 实时中继转发游戏数据，
+        在浏览器中呈现 5 张地图的互动战术视图。支持多人同时观战、管理后台监控。
+      </p>
+      <ul class="features">
+        <li>实时雷达 — DLL 端采集，WebSocket 推送至地图</li>
+        <li>多人观战 — 单房间最多 4 人同时观看</li>
+        <li>50ms 智能节流 — 防止突发数据卡顿</li>
+        <li>5 张地图自动切换 — 零号大坝、长弓溪谷、航天基地、巴克什、潮汐监狱</li>
+        <li>管理后台 — 实时房间状态、流量统计、IP 封禁</li>
+        <li>反滥用系统 — 认证限流 + 渐进封禁 + SQLite 每日统计</li>
+        <li>双主题 — 暗色系 + 浅色毛玻璃（中英双语）</li>
+        <li>房间白名单 — 支持拉取/推送两种模式</li>
+      </ul>
+      <div class="tech-stack">
+        <span>Node.js</span><span>WebSocket</span><span>Leaflet</span><span>Canvas 2D</span>
+        <span>SQLite</span><span>zlib</span><span>PM2</span><span>Nginx</span>
+      </div>
+    </div>
+
+    <!-- Product 2: Auto Build -->
+    <div class="product-card">
+      <div class="p-icon">🤖</div>
+      <h3>Delta Force 特勤处自动建造</h3>
+      <div class="p-ver">S10 Edition · 智能制造脚本</div>
+      <p>
+        基于 OCR 文字识别与鼠标模拟的自动化制造程序。
+        不读取/修改任何游戏数据，纯视觉识别 + 模拟输入，零封号风险。
+      </p>
+      <ul class="features">
+        <li>截图 → OCR 识别 → 模拟键鼠输入，全自动流程</li>
+        <li>每日利润高达 270 万哈夫币（每周 2000 万+）</li>
+        <li>支持 S10 赛季最新物品、新子弹、赤枭防具</li>
+        <li>全新制造页面支持（特勤处-升级制造）</li>
+        <li>dxcam 直接显存截图，稳定不黑屏</li>
+        <li>16:9 全分辨率适配（1K / 2K / 4K）</li>
+        <li>自动购买材料、自动选择物品、自动收集</li>
+        <li>声音提示 + 自动聚焦，挂机无忧</li>
+      </ul>
+      <div class="tech-stack">
+        <span>Python</span><span>Tesseract OCR</span><span>dxcam</span><span>YAML</span>
+        <span>Win32 API</span><span>Mouse Simulation</span>
+      </div>
+    </div>
+<!-- Product 3: Weapons Database -->
+    <div class="product-card" style="cursor:pointer;" onclick="location.href='goosetech-weapons.html'">
+      <div class="p-icon">🔫</div>
+      <h3>武器数据库</h3>
+      <div class="p-ver">40+ Weapons · 7 Categories · Full Stats</div>
+      <p>
+        收录三角洲行动 40+ 把武器的完整属性数据，涵盖伤害衰减曲线、
+        射速、后坐力、机动性、弹容量、换弹时间等核心参数，
+        支持多维度对比与配件兼容性查询。
+      </p>
+      <ul class="features">
+        <li>7 大类别 — AR / SMG / LMG / DMR / SR / SG / Pistol 全覆盖</li>
+        <li>完整伤害衰减 — 10m / 30m / 50m / 80m / 100m+ 五档数据</li>
+        <li>后坐力评级 — 垂直 + 水平后坐力 0-100 数值评分</li>
+        <li>配件兼容表 — 每把武器 7 类配件槽位详细兼容清单</li>
+        <li>武器对比 — 多武器并排对比，差异高亮显示</li>
+        <li>口径信息 — 从 9mm 到手炮 .50 AE，弹种一目了然</li>
+      </ul>
+      <div class="tech-stack">
+        <span>TypeScript</span><span>React</span><span>Zustand</span>
+        <span>Recharts</span><span>Tailwind CSS</span>
+      </div>
+      <div style="margin-top:14px;">
+        <a href="goosetech-weapons.html" style="color:var(--accent);text-decoration:none;font-size:0.82rem;font-weight:600;">🔫 打开武器数据库 →</a>
+      </div>
+    </div>
+
+    <!-- Product 4: TTK Calculator -->
+    <div class="product-card" style="cursor:pointer;" onclick="location.href='goosetech-ttk.html'">
+      <div class="p-icon">🎯</div>
+      <h3>TTK 击杀时间计算器</h3>
+      <div class="p-ver">实时计算 · 武器对比 · 距离曲线</div>
+      <p>
+        基于武器伤害衰减、护甲减伤、身体部位倍率三重因素，
+        精确计算击杀时间 (Time-to-Kill)。支持双武器对比、
+        距离滑块调节与可视化曲线图。
+      </p>
+      <ul class="features">
+        <li>精密计算模型 — 武器伤害 × 距离衰减 × 护甲减伤 × 部位倍率</li>
+        <li>6 级护甲体系 — 1-6级防弹衣+头盔，每级独立减伤率</li>
+        <li>4 部位判定 — 头部 1.9× / 胸部 1.0× / 腹部 0.9× / 四肢 0.4×</li>
+        <li>距离调节 — 1-200m 滑块，实时重算 TTK</li>
+        <li>武器对比 — 双武器并排展示 TTK 差异，ms 级精度</li>
+        <li>可视化曲线 — TTK-Distance 距离伤害曲线图</li>
+      </ul>
+      <div class="tech-stack">
+        <span>TypeScript</span><span>React</span><span>Recharts</span>
+        <span>数学建模</span><span>Zustand</span>
+      </div>
+      <div style="margin-top:14px;">
+        <a href="goosetech-ttk.html" style="color:var(--accent);text-decoration:none;font-size:0.82rem;font-weight:600;">🎯 打开 TTK 计算器 →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════ ARCHITECTURE ════════════ -->
+<section id="architecture">
+  <div class="section-header">
+    <span class="tag tag-tech">ARCHITECTURE</span>
+    <h2>Web Radar 技术架构</h2>
+    <p>高性能实时数据中继系统，从游戏端到浏览器端的完整数据链路</p>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="an-title">🎮 DLL 采集端</div>
+        <div class="an-sub">游戏进程内<br>JSON/zlib 压缩<br>每 100ms 采集</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node blue">
+        <div class="an-title">⚡ Relay 服务器</div>
+        <div class="an-sub">Node.js :5000<br>认证 · 限流 · 节流<br>50ms 窗口转发</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node green">
+        <div class="an-title">🌐 地图前端</div>
+        <div class="an-sub">Leaflet + Canvas<br>5 张地图实时渲染<br>玩家/物品/容器/撤离点</div>
+      </div>
+      <div class="arch-arrow" style="color:var(--warn);">⇄</div>
+      <div class="arch-node">
+        <div class="an-title">🛡️ 管理后台</div>
+        <div class="an-sub">HTTP :1377<br>房间监控 · 统计<br>封禁管理 · 白名单</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ SCREENSHOTS ════════════ -->
+<section id="screenshots">
+  <div class="section-header">
+    <span class="tag tag-products">GALLERY</span>
+    <h2>产品预览</h2>
+    <p>暗色/浅色双主题 · 登录页 · 管理后台 · 自动建造</p>
+  </div>
+
+  <div class="screenshots-grid">
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#0d1520;">🌙</div>
+      <div class="sc-label">暗色主题 — 登录页</div>
+      <div class="sc-sub">Dark Theme Login · 输入房间号进入</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#111a0d;">🗺️</div>
+      <div class="sc-label">暗色主题 — 对局中</div>
+      <div class="sc-sub">Dark Theme In-Game · 实时玩家/物品/撤离点</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#f0f4f8;">☀️</div>
+      <div class="sc-label">浅色主题 — 毛玻璃入场</div>
+      <div class="sc-sub">Light Theme Landing · 中英双语 · 转场动画</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#f8fafc;">📍</div>
+      <div class="sc-label">浅色主题 — 地图视图</div>
+      <div class="sc-sub">Light Theme Map · Leaflet 互动地图</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#0a0e14;">📊</div>
+      <div class="sc-label">管理后台 — 房间列表</div>
+      <div class="sc-sub">Admin Dashboard · 实时数据 + 每日统计</div>
+    </div>
+    <div class="screenshot-card">
+      <div class="sc-placeholder" style="background:#1a1814;">🏭</div>
+      <div class="sc-label">特勤处自动建造</div>
+      <div class="sc-sub">Auto Build · OCR 制造界面自动化</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ SPECS ════════════ -->
+<section id="specs">
+  <div class="section-header">
+    <span class="tag tag-tech">SPECIFICATIONS</span>
+    <h2>技术规格</h2>
+  </div>
+
+  <table class="specs-table">
+    <tr><th>项目</th><th>Web Radar</th><th>特勤处自动建造</th></tr>
+    <tr><td>运行时</td><td>Node.js ≥ 18</td><td>Python 3.10+</td></tr>
+    <tr><td>通信协议</td><td>WebSocket (JSON + zlib binary)</td><td>— (纯本地)</td></tr>
+    <tr><td>数据采集</td><td>DLL 注入 → WS pub</td><td>dxcam 显存截图 → OCR</td></tr>
+    <tr><td>地图引擎</td><td>Leaflet + Canvas 2D</td><td>—</td></tr>
+    <tr><td>数据库</td><td>SQLite (统计/封禁)</td><td>YAML 配置文件</td></tr>
+    <tr><td>部署方式</td><td>PM2 + Nginx 反向代理</td><td>本地 exe (管理员运行)</td></tr>
+    <tr><td>支持地图</td><td>5 张 (Dam_Iris / OLDCITY / Forrest / SpaceCenter / Brakkesh / Tide)</td><td>N/A</td></tr>
+    <tr><td>分辨率支持</td><td>任意</td><td>16:9 (1K / 2K / 4K)</td></tr>
+    <tr><td>多用户</td><td>1 pub + 最多 4 sub 每房间</td><td>单用户</td></tr>
+    <tr><td>许可协议</td><td>MIT</td><td>MIT</td></tr>
+  </table>
+</section>
+
+<!-- ════════════ CTA ════════════ -->
+<section id="contact" class="cta-section">
+  <h2>开始使用 GooseTech 工具套件</h2>
+  <p>为三角洲行动玩家提供专业、高效、安全的游戏辅助体验</p>
+  <a href="#" class="btn-primary" style="font-size:0.95rem;padding:14px 36px;">🚀 查看文档</a>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="flogo">🪿 GooseTech</div>
+  <p>游戏智能工具 · 技术学习与交流</p>
+  <div class="links">
+    <a href="goosetech-radar-landing.html">🏠 主站</a>
+    <a href="#products">产品</a>
+    <a href="#architecture">架构</a>
+    <a href="#screenshots">预览</a>
+    <a href="#specs">规格</a>
+    <a href="goosetech-weapons.html">武器库</a>
+    <a href="goosetech-ttk.html">TTK 计算器</a>
+    <a href="goosetech-draw.html">战备抽签</a>
+    <a href="#">GitHub</a>
+    <a href="#">文档</a>
+  </div>
+  <div class="copyright">
+    © 2025 GooseTech. Built for Delta Force community. MIT Licensed.<br>
+    本项目仅为技术学习与交流目的，并非游戏外挂或作弊工具。
+  </div>
+</footer>
+
+<script>
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// Nav background opacity on scroll
+window.addEventListener('scroll',()=>{
+  const nav=document.querySelector('nav');
+  nav.style.background=window.scrollY>20
+    ?'rgba(8,12,16,0.95)'
+    :'rgba(8,12,16,0.85)';
+});
+</script>
+</body>
+</html>

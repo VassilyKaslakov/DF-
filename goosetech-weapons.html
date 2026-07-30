@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>武器数据库 — GooseTech | Delta Force Tools</title>
+<style>
+:root {
+  --bg:#080c10; --surface:#0f161c; --border:#1e2a36;
+  --text:#c8d6e5; --muted:#60758a;
+  --accent:#4da6ff; --accent2:#22d3a0; --warn:#f0a040; --danger:#f04770;
+  --grad1:linear-gradient(135deg,#0a1622 0%,#0f1f30 50%,#0a1a28 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.6;overflow-x:hidden;
+}
+
+/* ── Navigation ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,12,16,0.85);backdrop-filter:blur(20px)saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;
+}
+nav .logo{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:800;color:#fff;text-decoration:none;}
+nav .logo .icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+nav .links{display:flex;gap:28px;list-style:none;}
+nav .links a{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:500;transition:0.2s;}
+nav .links a:hover{color:#fff;}
+nav .links a.active{color:var(--accent);}
+nav .cta-btn{
+  background:var(--accent);color:#000;border:none;padding:8px 18px;
+  border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;transition:0.2s;text-decoration:none;
+}
+nav .cta-btn:hover{background:#6abfff;transform:translateY(-1px);box-shadow:0 4px 20px rgba(77,166,255,0.35);}
+
+/* ── Page Header ── */
+.page-header{
+  padding:120px 40px 60px;text-align:center;
+  background:var(--grad1);position:relative;overflow:hidden;
+}
+.page-header::before{
+  content:'';position:absolute;top:-30%;right:-15%;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(77,166,255,0.06)0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.page-header .badge{
+  display:inline-block;padding:4px 14px;border:1px solid rgba(77,166,255,0.3);
+  border-radius:20px;font-size:0.75rem;color:var(--accent);margin-bottom:16px;letter-spacing:1px;
+}
+.page-header h1{font-size:2.6rem;font-weight:900;color:#fff;margin-bottom:10px;position:relative;z-index:1;}
+.page-header h1 .hl{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-header p{color:var(--muted);font-size:0.95rem;position:relative;z-index:1;}
+
+/* ── Toolbar ── */
+.toolbar{
+  position:sticky;top:60px;z-index:50;
+  background:rgba(15,22,28,0.95);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);padding:16px 40px;
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
+.toolbar .search-box{
+  flex:1;min-width:240px;max-width:420px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:8px;padding:10px 16px;color:var(--text);font-size:0.85rem;
+  outline:none;transition:0.2s;font-family:inherit;
+}
+.toolbar .search-box:focus{border-color:var(--accent);background:rgba(255,255,255,0.06);}
+.toolbar .search-box::placeholder{color:var(--muted);}
+.category-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.category-filters button{
+  padding:7px 15px;border:1px solid var(--border);border-radius:6px;
+  background:transparent;color:var(--muted);font-size:0.75rem;font-weight:600;
+  cursor:pointer;transition:0.2s;font-family:inherit;white-space:nowrap;
+}
+.category-filters button:hover{border-color:rgba(255,255,255,0.2);color:#fff;}
+.category-filters button.active{background:var(--accent);border-color:var(--accent);color:#000;}
+.weapon-count{font-size:0.78rem;color:var(--muted);margin-left:auto;white-space:nowrap;}
+.weapon-count span{color:var(--accent);font-weight:700;}
+
+/* ── Weapons Grid ── */
+section{padding:40px;}
+.weapons-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));
+  gap:20px;max-width:1400px;margin:0 auto;
+}
+.weapon-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:24px;transition:0.2s;cursor:pointer;position:relative;overflow:hidden;
+}
+.weapon-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.35);}
+.weapon-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.weapon-card .wc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.weapon-card .wc-name{font-size:1.15rem;font-weight:700;color:#fff;}
+.weapon-card .wc-category{
+  font-size:0.65rem;font-weight:700;padding:3px 8px;border-radius:4px;
+  background:rgba(77,166,255,0.1);color:var(--accent);letter-spacing:0.5px;white-space:nowrap;
+}
+.weapon-card .wc-category.smg{background:rgba(34,211,160,0.1);color:var(--accent2);}
+.weapon-card .wc-category.lmg{background:rgba(240,160,64,0.1);color:var(--warn);}
+.weapon-card .wc-category.dmr{background:rgba(240,112,112,0.1);color:var(--danger);}
+.weapon-card .wc-category.sr{background:rgba(200,130,240,0.1);color:#c882f0;}
+.weapon-card .wc-category.sg{background:rgba(240,180,80,0.1);color:#f0b450;}
+.weapon-card .wc-category.pistol{background:rgba(150,180,200,0.1);color:#96b4c8;}
+.weapon-card .wc-caliber{font-size:0.7rem;color:var(--muted);margin-bottom:12px;}
+.weapon-card .wc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.weapon-card .wc-stat{text-align:center;}
+.weapon-card .wc-stat .val{font-size:1.3rem;font-weight:800;color:#fff;}
+.weapon-card .wc-stat .val.accent{color:var(--accent);}
+.weapon-card .wc-stat .val.green{color:var(--accent2);}
+.weapon-card .wc-stat .val.warn{color:var(--warn);}
+.weapon-card .wc-stat .lbl{font-size:0.65rem;color:var(--muted);margin-top:2px;}
+.weapon-card .wc-detail{font-size:0.75rem;color:var(--muted);line-height:1.8;}
+.weapon-card .wc-detail .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.weapon-card .wc-detail .row .k{color:var(--muted);}
+.weapon-card .wc-detail .row .v{color:var(--text);font-weight:500;}
+.weapon-card .wc-compare-btn{
+  display:inline-block;margin-top:12px;padding:5px 12px;
+  border:1px solid var(--border);border-radius:5px;
+  background:transparent;color:var(--muted);font-size:0.7rem;
+  cursor:pointer;transition:0.2s;font-family:inherit;
+}
+.weapon-card .wc-compare-btn:hover{border-color:var(--accent);color:var(--accent);}
+.weapon-card .wc-compare-btn.active{background:rgba(77,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+
+/* ── Damage Bars ── */
+.damage-bars{display:flex;gap:3px;align-items:flex-end;height:60px;margin:12px 0;}
+.damage-bar-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;}
+.damage-bar-item .bar{
+  width:100%;border-radius:3px 3px 0 0;transition:0.3s;
+  background:linear-gradient(180deg,var(--accent),rgba(77,166,255,0.3));
+}
+.damage-bar-item .bar.green-bg{background:linear-gradient(180deg,var(--accent2),rgba(34,211,160,0.3));}
+.damage-bar-item .bar.warn-bg{background:linear-gradient(180deg,var(--warn),rgba(240,160,64,0.3));}
+.damage-bar-item .bar.danger-bg{background:linear-gradient(180deg,var(--danger),rgba(240,71,112,0.3));}
+.damage-bar-item .dist{font-size:0.55rem;color:var(--muted);margin-top:4px;}
+
+/* ── Comparison Panel ── */
+.compare-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:rgba(15,22,28,0.98);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  padding:16px 40px;display:none;align-items:center;gap:24px;
+  transform:translateY(100%);transition:transform 0.3s;
+}
+.compare-panel.show{display:flex;transform:translateY(0);}
+.compare-panel .cp-weapon{display:flex;align-items:center;gap:12px;flex:1;}
+.compare-panel .cp-weapon .cp-icon{font-size:2rem;}
+.compare-panel .cp-weapon .cp-name{font-weight:700;color:#fff;font-size:0.9rem;}
+.compare-panel .cp-weapon .cp-stat{font-size:0.7rem;color:var(--accent);}
+.compare-panel .cp-vs{color:var(--muted);font-weight:800;font-size:0.85rem;}
+.compare-panel .cp-actions{display:flex;gap:8px;margin-left:auto;}
+.compare-panel button{
+  padding:8px 16px;border-radius:6px;font-weight:600;font-size:0.78rem;
+  cursor:pointer;transition:0.2s;font-family:inherit;
+}
+.cp-clear{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.cp-clear:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
+.cp-compare{background:var(--accent);border:none;color:#000;}
+.cp-compare:hover{background:#6abfff;}
+
+/* ── Section header ── */
+.section-divider{
+  max-width:1400px;margin:20px auto;padding:0 40px;
+}
+.section-divider h3{
+  font-size:1rem;font-weight:700;color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+
+/* ── Footer ── */
+footer{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:50px 40px 30px;text-align:center;margin-top:60px;
+}
+footer .flogo{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:10px;}
+footer p{color:var(--muted);font-size:0.78rem;}
+footer .f-links{display:flex;gap:24px;justify-content:center;margin:16px 0;flex-wrap:wrap;}
+footer .f-links a{color:var(--muted);text-decoration:none;font-size:0.78rem;transition:0.2s;}
+footer .f-links a:hover{color:#fff;}
+footer .copyright{color:#3a5068;font-size:0.7rem;margin-top:20px;}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  nav .links{display:none;}
+  .page-header{padding:100px 16px 40px;}
+  .page-header h1{font-size:1.6rem;}
+  .toolbar{padding:12px 16px;flex-direction:column;}
+  .toolbar .search-box{max-width:100%;}
+  .weapons-grid{grid-template-columns:1fr;padding:0 8px;}
+  section{padding:20px 8px;}
+  .compare-panel{padding:12px 16px;flex-wrap:wrap;gap:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav>
+  <a href="goosetech-radar-landing.html" class="logo">
+    <span class="icon">🪿</span>
+    GooseTech
+  </a>
+  <ul class="links">
+    <li><a href="goosetech-radar-landing.html#radar">战术雷达</a></li>
+    <li><a href="goosetech-radar-landing.html#maps">地图库</a></li>
+    <li><a href="goosetech-weapons.html" class="active">武器库</a></li>
+    <li><a href="goosetech-ttk.html">TTK 计算器</a></li>
+    <li><a href="goosetech-draw.html">战备抽签</a></li>
+  </ul>
+  <a href="goosetech-ttk.html" class="cta-btn">TTK 计算器</a>
+</nav>
+
+<!-- ════════════ PAGE HEADER ════════════ -->
+<div class="page-header">
+  <div class="badge">🔫 WEAPONS DATABASE</div>
+  <h1>三角洲行动 <span class="hl">武器数据库</span></h1>
+  <p>收录 30+ 武器完整属性 — 伤害衰减 · 射速 · 后坐力 · 配件兼容 · 口径信息</p>
+</div>
+
+<!-- ════════════ TOOLBAR ════════════ -->
+<div class="toolbar">
+  <input type="text" class="search-box" placeholder="搜索武器名称、口径、类别…" id="searchInput">
+  <div class="category-filters" id="categoryFilters">
+    <button class="active" data-cat="all">全部</button>
+    <button data-cat="AR">突击步枪</button>
+    <button data-cat="SMG">冲锋枪</button>
+    <button data-cat="LMG">轻机枪</button>
+    <button data-cat="DMR">射手步枪</button>
+    <button data-cat="SR">狙击步枪</button>
+    <button data-cat="SG">霰弹枪</button>
+    <button data-cat="Pistol">手枪</button>
+  </div>
+  <div class="weapon-count">显示 <span id="countDisplay">30</span> 把武器</div>
+</div>
+
+<!-- ════════════ COMPARE PANEL ════════════ -->
+<div class="compare-panel" id="comparePanel">
+  <div class="cp-weapon" id="cpSlot1">
+    <div class="cp-icon">🔫</div>
+    <div><div class="cp-name">—</div><div class="cp-stat">选择武器进行对比</div></div>
+  </div>
+  <div class="cp-vs">VS</div>
+  <div class="cp-weapon" id="cpSlot2">
+    <div class="cp-icon">🔫</div>
+    <div><div class="cp-name">—</div><div class="cp-stat">选择武器进行对比</div></div>
+  </div>
+  <div class="cp-actions">
+    <button class="cp-clear" onclick="clearCompare()">清除</button>
+    <button class="cp-compare" onclick="openCompare()">🔍 对比详情</button>
+  </div>
+</div>
+
+<!-- ════════════ WEAPONS SECTION ════════════ -->
+<section>
+  <div class="weapons-grid" id="weaponsGrid"></div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="flogo">🪿 GooseTech</div>
+  <p>游戏智能工具 · 技术学习与交流</p>
+  <div class="f-links">
+    <a href="goosetech-radar-landing.html">首页</a>
+    <a href="goosetech-weapons.html">武器库</a>
+    <a href="goosetech-ttk.html">TTK 计算器</a>
+    <a href="goosetech-draw.html">战备抽签</a>
+    <a href="#">GitHub</a>
+  </div>
+  <div class="copyright">
+    © 2025 GooseTech. Built for Delta Force community. MIT Licensed.<br>
+    数据来源于社区整理，实际数值请以游戏内最新版本为准。
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// WEAPONS DATABASE
+// ═══════════════════════════════════════
+const WEAPONS = [
+  // ── Assault Rifles ──
+  {id:"m4a1",name:"M4A1",cat:"AR",caliber:"5.56×45mm",dmg:31,armorDmg:33,rpm:800,mag:30,reload:2.4,vertical:28,horizontal:22,range:40,falloff:[31,28,24,20,17],desc:"全能型突击步枪，后坐力低，适合新手与高手。"},
+  {id:"ak12",name:"AK-12",cat:"AR",caliber:"5.45×39mm",dmg:30,armorDmg:42,rpm:735,mag:30,reload:2.5,vertical:32,horizontal:24,range:40,falloff:[30,27,23,19,16],desc:"现代俄制步枪，三连发模式，中距离表现出色。"},
+  {id:"akm",name:"AKM",cat:"AR",caliber:"7.62×39mm",dmg:40,armorDmg:42,rpm:600,mag:30,reload:2.7,vertical:42,horizontal:30,range:40,falloff:[40,36,30,24,20],desc:"经典大口径突击步枪，单发伤害高，后坐力大但威力十足。"},
+  {id:"car15",name:"CAR-15",cat:"AR",caliber:"5.56×45mm",dmg:27,armorDmg:32,rpm:632,mag:20,reload:2.1,vertical:24,horizontal:18,range:40,falloff:[27,24,20,17,14],desc:"短管卡宾枪，后坐力极低，近中距离机动性强。"},
+  {id:"aks74u",name:"AKS-74U",cat:"AR",caliber:"5.45×39mm",dmg:34,armorDmg:36,rpm:533,mag:30,reload:2.5,vertical:36,horizontal:26,range:40,falloff:[34,30,25,21,18],desc:"紧凑型突击步枪，高单发伤害，低射速高精度。"},
+  {id:"sg552",name:"SG552",cat:"AR",caliber:"5.56×45mm",dmg:24,armorDmg:31,rpm:906,mag:30,reload:2.6,vertical:30,horizontal:23,range:35,falloff:[24,22,18,15,12],desc:"极高射速，近战利器，曾为赛季T0武器。"},
+  {id:"k416",name:"K416",cat:"AR",caliber:"5.56×45mm",dmg:31,armorDmg:35,rpm:880,mag:30,reload:2.3,vertical:26,horizontal:20,range:27,falloff:[31,27,22,18,15],desc:"满改后机动性接近SMG的高射速步枪。"},
+  {id:"asval",name:"AS Val 巨浪",cat:"AR",caliber:"9×39mm",dmg:29,armorDmg:48,rpm:972,mag:20,reload:2.3,vertical:38,horizontal:28,range:27,falloff:[29,25,21,17,14],desc:"近战之王，内置消音，30米内瞬间融化六套。"},
+  {id:"ash12",name:"Ash-12",cat:"AR",caliber:"12.7×55mm",dmg:56,armorDmg:55,rpm:500,mag:20,reload:2.9,vertical:52,horizontal:40,range:55,falloff:[56,50,42,34,28],desc:"面板最高伤害，射速慢但每一发都致命。"},
+  {id:"g3",name:"G3",cat:"AR",caliber:"7.62×51mm",dmg:39,armorDmg:42,rpm:533,mag:20,reload:2.7,vertical:40,horizontal:30,range:55,falloff:[39,35,30,25,21],desc:"经典德制战斗步枪，远距离精度优秀。"},
+  {id:"aug",name:"AUG",cat:"AR",caliber:"5.56×45mm",dmg:32,armorDmg:35,rpm:679,mag:30,reload:2.5,vertical:28,horizontal:20,range:55,falloff:[32,28,24,20,17],desc:"无托式步枪，射程优秀，新手友好。"},
+  {id:"scarh",name:"SCAR-H",cat:"AR",caliber:"7.62×51mm",dmg:40,armorDmg:40,rpm:585,mag:20,reload:2.6,vertical:38,horizontal:28,range:40,falloff:[40,36,30,24,20],desc:"大威力战斗步枪，S10赛季伤害衰减得到加强。"},
+  {id:"qbz",name:"QBZ95-1",cat:"AR",caliber:"5.8×42mm",dmg:28,armorDmg:42,rpm:679,mag:30,reload:2.4,vertical:30,horizontal:22,range:55,falloff:[28,25,21,18,15],desc:"国产无托步枪，高甲伤，穿透力强。"},
+  {id:"m16a4",name:"M16A4",cat:"AR",caliber:"5.56×45mm",dmg:33,armorDmg:39,rpm:508,mag:30,reload:2.3,vertical:22,horizontal:16,range:55,falloff:[33,30,26,22,19],desc:"三连发步枪，射程远精度高，适合卡点。"},
+  {id:"m7",name:"M7 堤风",cat:"AR",caliber:"6.8×51mm",dmg:40,armorDmg:42,rpm:649,mag:20,reload:2.6,vertical:35,horizontal:26,range:65,falloff:[40,37,33,28,24],desc:"六边形战士，中远程战斗步枪，四枪致死重甲。"},
+  {id:"k437",name:"K437",cat:"AR",caliber:"5.56×45mm",dmg:34,armorDmg:35,rpm:780,mag:30,reload:2.4,vertical:30,horizontal:22,range:35,falloff:[34,30,25,21,18],desc:"S10射程提升至25m，中距离表现出色。"},
+  {id:"kc17",name:"KC-17",cat:"AR",caliber:"7.62×51mm",dmg:31,armorDmg:48,rpm:740,mag:20,reload:2.5,vertical:34,horizontal:26,range:55,falloff:[31,28,24,20,17],desc:"高甲伤突击步枪，S10伤害提升，穿透力出色。"},
+
+  // ── SMGs ──
+  {id:"vector",name:"Vector",cat:"SMG",caliber:".45 ACP",dmg:32,armorDmg:28,rpm:1091,mag:30,reload:2.0,vertical:30,horizontal:25,range:20,falloff:[32,26,20,15,12],desc:"全游第二高射速，近距离秒杀，金弹版T0。"},
+  {id:"mp7",name:"MP7",cat:"SMG",caliber:"4.6×30mm",dmg:32,armorDmg:28,rpm:950,mag:40,reload:2.2,vertical:25,horizontal:20,range:20,falloff:[32,26,20,15,12],desc:"高射速+大弹匣，双修腰射开镜，近战利器。"},
+  {id:"p90",name:"P90",cat:"SMG",caliber:"5.7×28mm",dmg:32,armorDmg:35,rpm:898,mag:50,reload:2.5,vertical:26,horizontal:22,range:20,falloff:[32,26,20,15,12],desc:"50发大弹匣，极高持续火力，PvE神器。"},
+  {id:"qcq171",name:"QCQ171",cat:"SMG",caliber:"5.8×42mm",dmg:36,armorDmg:33,rpm:763,mag:30,reload:2.3,vertical:28,horizontal:22,range:20,falloff:[36,29,23,17,14],desc:"国产SMG，高单发伤害，综合性能均衡。"},
+  {id:"sr3m",name:"SR-3M",cat:"SMG",caliber:"9×39mm",dmg:36,armorDmg:48,rpm:747,mag:30,reload:2.2,vertical:35,horizontal:28,range:15,falloff:[36,28,21,16,13],desc:"近战轮椅枪，48甲伤+747射速，15米内无敌。"},
+  {id:"mp5",name:"MP5",cat:"SMG",caliber:"9×19mm",dmg:30,armorDmg:32,rpm:820,mag:30,reload:2.1,vertical:22,horizontal:17,range:20,falloff:[30,24,19,14,11],desc:"经典SMG，后坐力极低，新手友好。"},
+  {id:"uzi",name:"UZI",cat:"SMG",caliber:"9×19mm",dmg:28,armorDmg:35,rpm:780,mag:25,reload:1.9,vertical:28,horizontal:24,range:20,falloff:[28,22,17,13,10],desc:"微型冲锋枪，高甲伤，极快掏枪速度。"},
+  {id:"smg45",name:"SMG-45",cat:"SMG",caliber:".45 ACP",dmg:35,armorDmg:40,rpm:605,mag:25,reload:2.2,vertical:30,horizontal:24,range:27,falloff:[35,29,24,19,16],desc:"射程最远的SMG，高单发伤害，中距离表现出色。"},
+  {id:"bizon",name:"PP-19 野牛",cat:"SMG",caliber:"9×19mm",dmg:32,armorDmg:35,rpm:659,mag:53,reload:2.6,vertical:24,horizontal:20,range:20,falloff:[32,26,20,15,12],desc:"53发超大弹匣，持久火力，清图利器。"},
+  {id:"warrior",name:"勇士",cat:"SMG",caliber:"9×19mm",dmg:36,armorDmg:35,rpm:700,mag:30,reload:2.2,vertical:26,horizontal:22,range:20,falloff:[36,29,23,17,14],desc:"综合性能优秀的SMG，高伤害，中等射速。"},
+
+  // ── LMGs ──
+  {id:"m250",name:"M250",cat:"LMG",caliber:"6.8×51mm",dmg:55,armorDmg:53,rpm:550,mag:100,reload:4.5,vertical:44,horizontal:34,range:40,falloff:[55,49,42,34,28],desc:"伤害天花板，每发都是重拳，有扳机延迟。"},
+  {id:"pkm",name:"PKM",cat:"LMG",caliber:"7.62×54R",dmg:45,armorDmg:42,rpm:669,mag:100,reload:4.3,vertical:40,horizontal:32,range:40,falloff:[45,40,34,28,23],desc:"经典通用机枪，双伤高，持续火力强。"},
+  {id:"m249",name:"M249",cat:"LMG",caliber:"5.56×45mm",dmg:30,armorDmg:38,rpm:858,mag:100,reload:4.2,vertical:34,horizontal:26,range:40,falloff:[30,27,23,19,16],desc:"高射速轻机枪，火力压制力强，适合防守。"},
+
+  // ── DMRs ──
+  {id:"m14",name:"M14",cat:"DMR",caliber:"7.62×51mm",dmg:39,armorDmg:41,rpm:727,mag:20,reload:2.6,vertical:42,horizontal:32,range:40,falloff:[39,35,30,25,21],desc:"中距离霸主，全自动高伤，赛季T0武器。"},
+  {id:"mk47",name:"MK47 鹰战",cat:"DMR",caliber:"7.62×39mm",dmg:46,armorDmg:47,rpm:625,mag:20,reload:2.5,vertical:40,horizontal:30,range:25,falloff:[46,38,30,23,18],desc:"高伤害战斗步枪，双修腰射开镜，弹道诡异。"},
+  {id:"tenglong",name:"腾龙 高导",cat:"DMR",caliber:"7.62×51mm",dmg:35,armorDmg:38,rpm:759,mag:20,reload:2.5,vertical:36,horizontal:28,range:35,falloff:[35,31,26,22,18],desc:"高射速DMR，压制力强，中距离持续输出。"},
+
+  // ── Sniper Rifles ──
+  {id:"awm",name:"AWM",cat:"SR",caliber:".338 LM",dmg:95,armorDmg:90,rpm:37,mag:5,reload:3.5,vertical:60,horizontal:40,range:150,falloff:[95,90,85,80,75],desc:"一击致命，胸部以上一枪击杀，无视六套。"},
+  {id:"r93",name:"R93",cat:"SR",caliber:".338 LM",dmg:85,armorDmg:80,rpm:42,mag:5,reload:3.2,vertical:55,horizontal:36,range:120,falloff:[85,80,75,70,65],desc:"拉栓式狙击枪，高伤害，适合远距离狙击。"},
+  {id:"sv98",name:"SV-98",cat:"SR",caliber:"7.62×54R",dmg:75,armorDmg:70,rpm:45,mag:10,reload:3.0,vertical:50,horizontal:34,range:100,falloff:[75,70,65,60,55],desc:"俄制栓动狙击，10发大弹匣，持续狙击能力强。"},
+  {id:"m700",name:"M700",cat:"SR",caliber:"7.62×51mm",dmg:70,armorDmg:65,rpm:50,mag:5,reload:2.8,vertical:48,horizontal:32,range:100,falloff:[70,65,60,55,50],desc:"经典美制狙击步枪，精度高，上弹快。"},
+
+  // ── Shotguns ──
+  {id:"m870",name:"M870",cat:"SG",caliber:"12 Gauge",dmg:32,armorDmg:20,rpm:80,mag:5,reload:3.0,vertical:50,horizontal:36,range:10,falloff:[32,16,8,4,2],desc:"泵动霰弹枪，近距离一击致命。"},
+  {id:"m1014",name:"M1014",cat:"SG",caliber:"12 Gauge",dmg:28,armorDmg:18,rpm:180,mag:7,reload:3.2,vertical:48,horizontal:34,range:12,falloff:[28,14,7,4,2],desc:"半自动霰弹枪，可连续射击，室内CQB利器。"},
+  {id:"s12k",name:"S12K",cat:"SG",caliber:"12 Gauge",dmg:26,armorDmg:16,rpm:240,mag:8,reload:3.4,vertical:46,horizontal:32,range:10,falloff:[26,13,6,3,2],desc:"弹匣式半自动霰弹枪，射速最快，弹容量最大。"},
+
+  // ── Pistols ──
+  {id:"g18",name:"G18",cat:"Pistol",caliber:"9×19mm",dmg:22,armorDmg:18,rpm:900,mag:17,reload:1.6,vertical:32,horizontal:28,range:15,falloff:[22,16,11,7,5],desc:"全自动手枪，近战副武器之王。"},
+  {id:"deagle",name:"Desert Eagle",cat:"Pistol",caliber:".50 AE",dmg:55,armorDmg:50,rpm:150,mag:7,reload:2.0,vertical:55,horizontal:42,range:30,falloff:[55,45,35,28,22],desc:"手炮，手枪中的狙击枪，高伤害强后坐力。"},
+  {id:"93r",name:"93R",cat:"Pistol",caliber:"9×19mm",dmg:24,armorDmg:20,rpm:700,mag:20,reload:1.7,vertical:30,horizontal:26,range:15,falloff:[24,17,12,8,5],desc:"三连发手枪，高射速，中近距离表现出色。"}
+];
+
+// ════════════ STATE ════════════
+let activeCat = 'all';
+let searchQuery = '';
+let compareSlots = [null, null];
+
+// ════════════ CATEGORY NAMES ════════════
+const CAT_NAMES = {AR:'突击步枪',SMG:'冲锋枪',LMG:'轻机枪',DMR:'射手步枪',SR:'狙击步枪',SG:'霰弹枪',Pistol:'手枪'};
+const CAT_EMOJI = {AR:'🔫',SMG:'🔫',LMG:'🪖',DMR:'🎯',SR:'🔭',SG:'💥',Pistol:'🔧'};
+const CAT_CLASS = {SMG:'smg',LMG:'lmg',DMR:'dmr',SR:'sr',SG:'sg',Pistol:'pistol'};
+
+function getDPS(w){ return Math.round(w.dmg * w.rpm / 60); }
+function getTTK(w, hp=100, mult=1){
+  const ed = w.dmg * mult;
+  const btk = Math.ceil(hp / ed);
+  return Math.round((60 / w.rpm) * (btk - 1) * 1000);
+}
+
+// ════════════ RENDER ════════════
+function filterWeapons(){
+  return WEAPONS.filter(w=>{
+    if(activeCat!=='all' && w.cat!==activeCat) return false;
+    if(searchQuery){
+      const q = searchQuery.toLowerCase();
+      return w.name.toLowerCase().includes(q) ||
+        w.caliber.toLowerCase().includes(q) ||
+        w.cat.toLowerCase().includes(q) ||
+        (CAT_NAMES[w.cat]||'').includes(q) ||
+        w.desc.toLowerCase().includes(q);
+    }
+    return true;
+  });
+}
+
+function renderWeaponCard(w){
+  const catClass = CAT_CLASS[w.cat] || '';
+  const isSelected = compareSlots.includes(w.id);
+  const falloffMax = Math.max(...w.falloff);
+  const barsHTML = w.falloff.map((d,i)=>{
+    const h = Math.round(d/falloffMax*100);
+    const dists = ['10m','30m','50m','80m','100m'];
+    let barClass = '';
+    if(h>=70) barClass='green-bg';
+    else if(h>=45) barClass='';
+    else if(h>=25) barClass='warn-bg';
+    else barClass='danger-bg';
+    return `<div class="damage-bar-item"><div class="bar ${barClass}" style="height:${h}%"></div><div class="dist">${dists[i]}</div></div>`;
+  }).join('');
+
+  return `
+  <div class="weapon-card ${isSelected?'selected':''}" data-id="${w.id}" onclick="toggleCompare('${w.id}', event)">
+    <div class="wc-header">
+      <div class="wc-name">${w.name}</div>
+      <div class="wc-category ${catClass}">${CAT_NAMES[w.cat]}</div>
+    </div>
+    <div class="wc-caliber">📐 ${w.caliber} · 弹匣 ${w.mag}发 · 换弹 ${w.reload}s</div>
+    <div class="wc-stats">
+      <div class="wc-stat"><div class="val accent">${w.dmg}</div><div class="lbl">基础伤害</div></div>
+      <div class="wc-stat"><div class="val green">${w.rpm}</div><div class="lbl">射速 RPM</div></div>
+      <div class="wc-stat"><div class="val warn">${w.armorDmg}</div><div class="lbl">护甲伤害</div></div>
+    </div>
+    <div class="damage-bars">${barsHTML}</div>
+    <div class="wc-detail">
+      <div class="row"><span class="k">秒伤 DPS</span><span class="v">${getDPS(w)}</span></div>
+      <div class="row"><span class="k">胸部 TTK (无甲)</span><span class="v">${getTTK(w)}ms</span></div>
+      <div class="row"><span class="k">垂直/水平后坐力</span><span class="v">${w.vertical}/${w.horizontal}</span></div>
+      <div class="row"><span class="k">优势射程</span><span class="v">${w.range}m</span></div>
+    </div>
+    <button class="wc-compare-btn ${isSelected?'active':''}" onclick="event.stopPropagation();toggleCompare('${w.id}')">
+      ${isSelected ? '✓ 已选为对比' : '⇆ 加入对比'}
+    </button>
+  </div>`;
+}
+
+function renderAll(){
+  const filtered = filterWeapons();
+  document.getElementById('weaponsGrid').innerHTML = filtered.map(renderWeaponCard).join('');
+  document.getElementById('countDisplay').textContent = filtered.length;
+  updateComparePanel();
+}
+
+// ════════════ COMPARE ════════════
+function toggleCompare(id, e){
+  const idx0 = compareSlots.indexOf(id);
+  if(idx0>=0){
+    compareSlots[idx0] = null;
+  } else {
+    const emptyIdx = compareSlots.indexOf(null);
+    if(emptyIdx>=0){
+      compareSlots[emptyIdx] = id;
+    } else {
+      compareSlots.shift();
+      compareSlots.push(id);
+    }
+  }
+  updateComparePanel();
+  renderAll();
+}
+
+function clearCompare(){
+  compareSlots = [null, null];
+  updateComparePanel();
+  renderAll();
+}
+
+function openCompare(){
+  const ids = compareSlots.filter(Boolean);
+  if(ids.length<2){
+    alert('请先选择 2 把武器进行对比');
+    return;
+  }
+  const w1 = WEAPONS.find(w=>w.id===ids[0]);
+  const w2 = WEAPONS.find(w=>w.id===ids[1]);
+  if(!w1||!w2) return;
+
+  const lines = [];
+  lines.push(`🔫 武器对比: ${w1.name} VS ${w2.name}`);
+  lines.push('');
+  lines.push(`属性               ${w1.name.padEnd(16)} ${w2.name}`);
+  lines.push('━'.repeat(52));
+  lines.push(`类别               ${CAT_NAMES[w1.cat].padEnd(16)} ${CAT_NAMES[w2.cat]}`);
+  lines.push(`口径               ${w1.caliber.padEnd(16)} ${w2.caliber}`);
+  lines.push(`基础伤害            ${String(w1.dmg).padEnd(16)} ${w2.dmg} ${w1.dmg>w2.dmg?'←':w1.dmg<w2.dmg?'→':'='}`);
+  lines.push(`护甲伤害            ${String(w1.armorDmg).padEnd(16)} ${w2.armorDmg} ${w1.armorDmg>w2.armorDmg?'←':w1.armorDmg<w2.armorDmg?'→':'='}`);
+  lines.push(`射速 (RPM)          ${String(w1.rpm).padEnd(16)} ${w2.rpm} ${w1.rpm>w2.rpm?'←':w1.rpm<w2.rpm?'→':'='}`);
+  lines.push(`弹匣容量            ${String(w1.mag).padEnd(16)} ${w2.mag}`);
+  lines.push(`换弹时间            ${String(w1.reload+'s').padEnd(16)} ${w2.reload+'s'}`);
+  lines.push(`秒伤 DPS            ${String(getDPS(w1)).padEnd(16)} ${getDPS(w2)}`);
+  lines.push(`TTK (无甲胸)        ${String(getTTK(w1)+'ms').padEnd(16)} ${getTTK(w2)+'ms'}`);
+  lines.push(`优势射程            ${String(w1.range+'m').padEnd(16)} ${w2.range+'m'}`);
+  lines.push(`后坐力 V/H          ${String(w1.vertical+'/'+w1.horizontal).padEnd(16)} ${w2.vertical+'/'+w2.horizontal}`);
+  alert(lines.join('\n'));
+}
+
+function updateComparePanel(){
+  const panel = document.getElementById('comparePanel');
+  const ids = compareSlots.filter(Boolean);
+  if(ids.length>0){
+    panel.classList.add('show');
+  } else {
+    panel.classList.remove('show');
+  }
+
+  [0,1].forEach(i=>{
+    const w = WEAPONS.find(w=>w.id===compareSlots[i]);
+    const slot = document.getElementById('cpSlot'+(i+1));
+    if(w){
+      slot.innerHTML = `<div class="cp-icon">${CAT_EMOJI[w.cat]}</div><div><div class="cp-name">${w.name}</div><div class="cp-stat">${CAT_NAMES[w.cat]} · DPS ${getDPS(w)} · TTK ${getTTK(w)}ms</div></div>`;
+    } else {
+      slot.innerHTML = `<div class="cp-icon">🔫</div><div><div class="cp-name">—</div><div class="cp-stat">点击武器卡片选择</div></div>`;
+    }
+  });
+}
+
+// ════════════ TOOLBAR EVENTS ════════════
+document.getElementById('searchInput').addEventListener('input', e=>{
+  searchQuery = e.target.value;
+  renderAll();
+});
+
+document.getElementById('categoryFilters').addEventListener('click', e=>{
+  if(e.target.tagName==='BUTTON'){
+    document.querySelectorAll('#categoryFilters button').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    activeCat = e.target.dataset.cat;
+    renderAll();
+  }
+});
+
+// ════════════ NAV SCROLL ════════════
+window.addEventListener('scroll',()=>{
+  const nav=document.querySelector('nav');
+  nav.style.background=window.scrollY>20?'rgba(8,12,16,0.95)':'rgba(8,12,16,0.85)';
+});
+
+// ════════════ INIT ════════════
+renderAll();
+</script>
+</body>
+</html>

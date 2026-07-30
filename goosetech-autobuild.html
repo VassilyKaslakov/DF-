@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>特勤处自动建造 — GooseTech | Delta Force Tools</title>
+<style>
+:root {
+  --bg:#080c10; --surface:#0f161c; --border:#1e2a36;
+  --text:#c8d6e5; --muted:#60758a;
+  --accent:#4da6ff; --accent2:#22d3a0; --warn:#f0a040; --danger:#f04770;
+  --grad1:linear-gradient(135deg,#0a1622 0%,#0f1f30 50%,#0a1a28 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.6;overflow-x:hidden;
+}
+
+/* ── Navigation ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,12,16,0.85);backdrop-filter:blur(20px)saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;
+}
+nav .logo{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:800;color:#fff;text-decoration:none;}
+nav .logo .icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+nav .links{display:flex;gap:28px;list-style:none;}
+nav .links a{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:500;transition:0.2s;}
+nav .links a:hover{color:#fff;}
+nav .links a.active{color:var(--accent);}
+nav .cta-btn{
+  background:var(--accent);color:#000;border:none;padding:8px 18px;
+  border-radius:6px;font-weight:700;font-size:0.82rem;cursor:pointer;transition:0.2s;text-decoration:none;
+}
+nav .cta-btn:hover{background:#6abfff;transform:translateY(-1px);box-shadow:0 4px 20px rgba(77,166,255,0.35);}
+
+/* ── Page Header ── */
+.page-header{
+  padding:120px 40px 60px;text-align:center;
+  background:var(--grad1);position:relative;overflow:hidden;
+}
+.page-header::before{
+  content:'';position:absolute;top:-30%;right:-15%;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(34,211,160,0.06)0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.page-header .badge{
+  display:inline-block;padding:4px 14px;border:1px solid rgba(34,211,160,0.3);
+  border-radius:20px;font-size:0.75rem;color:var(--accent2);margin-bottom:16px;letter-spacing:1px;
+}
+.page-header h1{font-size:2.6rem;font-weight:900;color:#fff;margin-bottom:10px;position:relative;z-index:1;}
+.page-header h1 .hl{background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-header p{color:var(--muted);font-size:0.95rem;position:relative;z-index:1;}
+
+/* ── Main Layout ── */
+.main-container{max-width:1100px;margin:0 auto;padding:40px 20px;}
+
+/* ── Section ── */
+.section{margin-bottom:48px;}
+.section h2{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.section h2 .dot{width:10px;height:10px;border-radius:50%;background:var(--accent2);}
+.section .subtitle{color:var(--muted);font-size:0.85rem;margin-bottom:24px;}
+
+/* ── Info Card ── */
+.info-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;margin-bottom:20px;
+}
+.info-card h3{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:12px;}
+.info-card p{color:var(--muted);font-size:0.88rem;line-height:1.8;margin-bottom:16px;}
+.info-card ul{list-style:none;margin-bottom:16px;}
+.info-card ul li{font-size:0.85rem;color:var(--text);padding:5px 0;padding-left:22px;position:relative;}
+.info-card ul li::before{content:'▸';position:absolute;left:0;color:var(--accent2);font-weight:700;}
+
+/* ── Feature Grid ── */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+.feature-item{
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;
+  padding:22px;text-align:center;transition:0.2s;
+}
+.feature-item:hover{border-color:rgba(255,255,255,0.15);}
+.feature-item .fi-icon{font-size:2rem;margin-bottom:10px;}
+.feature-item .fi-title{font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:6px;}
+.feature-item .fi-desc{font-size:0.76rem;color:var(--muted);line-height:1.6;}
+
+/* ── Department Cards ── */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.dept-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;transition:0.2s;
+}
+.dept-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);}
+.dept-card .dept-icon{font-size:1.8rem;margin-bottom:8px;}
+.dept-card h4{font-size:0.95rem;font-weight:700;color:#fff;margin-bottom:6px;}
+.dept-card .dept-count{font-size:0.7rem;color:var(--accent2);margin-bottom:8px;}
+.dept-card p{font-size:0.78rem;color:var(--muted);line-height:1.6;}
+
+/* ── Tech Stack Badges ── */
+.tech-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.tech-badges span{
+  padding:4px 12px;background:rgba(34,211,160,0.08);border:1px solid rgba(34,211,160,0.2);
+  border-radius:5px;font-size:0.7rem;color:var(--accent2);font-family:'SF Mono','Consolas',monospace;
+}
+
+/* ── Steps ── */
+.steps-list{counter-reset:step;}
+.steps-list li{
+  counter-increment:step;padding:14px 0 14px 50px;position:relative;border-bottom:1px solid var(--border);
+  font-size:0.85rem;color:var(--text);line-height:1.7;
+}
+.steps-list li::before{
+  content:counter(step);position:absolute;left:0;top:16px;
+  width:32px;height:32px;background:var(--accent2);color:#000;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;
+}
+.steps-list li strong{color:#fff;}
+
+/* ── File Tree ── */
+.file-tree{
+  background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;
+  padding:20px 24px;font-family:'SF Mono','Consolas',monospace;font-size:0.78rem;
+  line-height:2;color:var(--muted);overflow-x:auto;
+}
+.file-tree .dir{color:var(--accent);}
+.file-tree .file{color:var(--text);}
+.file-tree .comment{color:#4a5568;}
+
+/* ── Footer ── */
+footer{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:50px 40px 30px;text-align:center;margin-top:60px;
+}
+footer .flogo{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:10px;}
+footer p{color:var(--muted);font-size:0.78rem;}
+footer .f-links{display:flex;gap:24px;justify-content:center;margin:16px 0;flex-wrap:wrap;}
+footer .f-links a{color:var(--muted);text-decoration:none;font-size:0.78rem;transition:0.2s;}
+footer .f-links a:hover{color:#fff;}
+footer .copyright{color:#3a5068;font-size:0.7rem;margin-top:20px;}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  nav .links{display:none;}
+  .page-header{padding:100px 16px 40px;}
+  .page-header h1{font-size:1.6rem;}
+  .main-container{padding:20px 12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav>
+  <a href="goosetech-radar-landing.html" class="logo">
+    <span class="icon">🪿</span>
+    GooseTech
+  </a>
+  <ul class="links">
+    <li><a href="goosetech-radar-landing.html#radar">战术雷达</a></li>
+    <li><a href="goosetech-radar-landing.html#maps">地图库</a></li>
+    <li><a href="goosetech-weapons.html">武器库</a></li>
+    <li><a href="goosetech-ttk.html">TTK 计算器</a></li>
+    <li><a href="goosetech-draw.html">战备抽签</a></li>
+    <li><a href="goosetech-autobuild.html" class="active">自动建造</a></li>
+  </ul>
+  <a href="goosetech-weapons.html" class="cta-btn">武器数据库</a>
+</nav>
+
+<!-- ════════════ PAGE HEADER ════════════ -->
+<div class="page-header">
+  <div class="badge">🏭 AUTO MANUFACTURING</div>
+  <h1>特勤处<span class="hl">自动建造</span></h1>
+  <p>基于 OCR 文字识别 + 鼠标模拟的全自动制造程序 · 不读取游戏数据 · 零封号风险</p>
+</div>
+
+<!-- ════════════ MAIN ════════════ -->
+<div class="main-container">
+
+  <!-- Overview -->
+  <div class="section">
+    <h2><span class="dot"></span>项目概述</h2>
+    <p class="subtitle">S10赛季适配 · 纯视觉识别方案 · 每日270万+哈夫币利润</p>
+
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="fi-icon">📸</div>
+        <div class="fi-title">OCR 视觉识别</div>
+        <div class="fi-desc">Tesseract OCR 引擎识别游戏界面文字，判断物品名称与剩余时间</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">🖱️</div>
+        <div class="fi-title">鼠标模拟输入</div>
+        <div class="fi-desc">Win32 API 模拟键鼠操作，不注入不修改，纯外部行为</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">💻</div>
+        <div class="fi-title">dxcam 显存截图</div>
+        <div class="fi-desc">直接从显存抓取画面，比传统截图快10倍，稳定不黑屏</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">🎯</div>
+        <div class="fi-title">16:9 全分辨率</div>
+        <div class="fi-desc">1K / 2K / 4K 自适应，YAML配置文件精确坐标映射</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">🛡️</div>
+        <div class="fi-title">零封号风险</div>
+        <div class="fi-desc">不读取/修改任何游戏内存，纯视觉识别+模拟输入方案</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">💰</div>
+        <div class="fi-title">高收益挂机</div>
+        <div class="fi-desc">日均270万哈夫币，周均2000万+，声音提示+自动聚焦</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="section">
+    <h2><span class="dot"></span>工作流程</h2>
+    <p class="subtitle">从截图到制造完成的全自动流水线</p>
+
+    <div class="info-card">
+      <ol class="steps-list">
+        <li><strong>截图采集</strong> — dxcam 从显存直接截取游戏窗口画面，零延迟</li>
+        <li><strong>OCR 识别</strong> — Tesseract 对指定区域进行文字识别，判断当前物品名和剩余制造时间</li>
+        <li><strong>智能决策</strong> — 根据物品价值与制造队列，自动选择最优制造方案</li>
+        <li><strong>材料购买</strong> — 自动识别并点击购买所需材料（若材料不足则跳过）</li>
+        <li><strong>启动制造</strong> — 模拟点击制造按钮，自动输入制造数量</li>
+        <li><strong>自动收集</strong> — 监控制造完成，自动点击收集成品，循环下一轮</li>
+        <li><strong>异常处理</strong> — 声音提示+自动重试，挂机无忧</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Four Departments -->
+  <div class="section">
+    <h2><span class="dot"></span>四大制造部门</h2>
+    <p class="subtitle">覆盖特勤处全部制造品类 · 200+种物品配置</p>
+
+    <div class="dept-grid">
+      <div class="dept-card">
+        <div class="dept-icon">🔫</div>
+        <h4>技术中心</h4>
+        <div class="dept-count">20+ 武器 · 80+ 配件</div>
+        <p>M4A1、AKM、SCAR-H、P90等武器制造，瞄具/握把/枪口/枪托/战术配件全覆盖。包含蜂网遮光罩、先进热融合全息等高级配件。</p>
+        <div class="tech-badges"><span>武器</span><span>瞄具</span><span>握把</span><span>枪口</span><span>枪托</span><span>战术配件</span></div>
+      </div>
+      <div class="dept-card">
+        <div class="dept-icon">🔵</div>
+        <h4>工作台</h4>
+        <div class="dept-count">50+ 弹药规格 · Lv.3-7</div>
+        <p>.338 Lap Mag AP(7级)、6.8x51mm AP(6级)、M61(6级)等顶级弹药制造。覆盖13种口径体系，从3级到7级子弹。</p>
+        <div class="tech-badges"><span>7.62x51mm</span><span>6.8x51mm</span><span>.338 LM</span><span>12.7x55mm</span></div>
+      </div>
+      <div class="dept-card">
+        <div class="dept-icon">💉</div>
+        <h4>制药台</h4>
+        <div class="dept-count">15+ 医疗物品 · Lv.3-6</div>
+        <p>高级护甲/头盔维修组合(6级)、战地医疗箱(5级)、M2肌肉注射剂、感知强化剂、体能强化剂等战斗药剂。</p>
+        <div class="tech-badges"><span>维修组合</span><span>肌肉强化针</span><span>战斗兴奋剂</span></div>
+      </div>
+      <div class="dept-card">
+        <div class="dept-icon">🛡️</div>
+        <h4>防具台</h4>
+        <div class="dept-count">45+ 防具 · Lv.4-6</div>
+        <p>泰坦防弹装甲(6级)、金刚防弹衣(6级)、H70夜视精英头盔(6级)、GTO重型背包等顶级防具制造。</p>
+        <div class="tech-badges"><span>头盔</span><span>护甲</span><span>弹挂</span><span>背包</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <h2><span class="dot"></span>技术架构</h2>
+
+    <div class="info-card">
+      <h3>📁 项目文件结构</h3>
+      <div class="file-tree">
+<span class="dir">DeltaForceSS-main/</span><br>
+├── <span class="file">main.py</span>              <span class="comment"># 主程序入口</span><br>
+├── <span class="file">config.yaml</span>          <span class="comment"># 核心配置: 物品列表、UI坐标、OCR参数</span><br>
+├── <span class="dir">dist/</span><br>
+│   └── <span class="dir">Tesseract-OCR/</span>    <span class="comment"># Tesseract OCR 运行时 (~60 DLL)</span><br>
+├── <span class="dir">.img/</span>                <span class="comment"># UI 界面标注截图</span><br>
+├── <span class="file">requirements.txt</span>     <span class="comment"># Python 依赖</span><br>
+└── <span class="file">README.md</span>            <span class="comment"># 使用说明</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>⚙️ config.yaml 核心配置</h3>
+      <p>配置文件包含4大部门的所有可制造物品、游戏窗口UI坐标映射、OCR识别参数和制造队列定价数据。支持自定义添加新物品。</p>
+      <div class="tech-badges" style="margin-top:12px;">
+        <span>Python 3.10+</span><span>Tesseract OCR</span><span>dxcam</span><span>Win32 API</span>
+        <span>YAML</span><span>Mouse Simulation</span><span>PIL/Pillow</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Start -->
+  <div class="section">
+    <h2><span class="dot"></span>快速开始</h2>
+    <div class="info-card">
+      <ol class="steps-list">
+        <li><strong>安装 Python 3.10+</strong> — 从 python.org 下载安装</li>
+        <li><strong>安装依赖</strong> — <code style="background:rgba(34,211,160,0.1);color:var(--accent2);padding:2px 8px;border-radius:4px;">pip install -r requirements.txt</code></li>
+        <li><strong>Tesseract OCR</strong> — dist/ 目录已自带运行时，无需额外安装</li>
+        <li><strong>调整分辨率</strong> — 确保游戏使用 16:9 比例 (1920×1080 / 2560×1440 / 3840×2160)</li>
+        <li><strong>管理员运行</strong> — 右键以管理员身份运行 main.py（dxcam需要管理员权限）</li>
+        <li><strong>打开制造页面</strong> — 进入特勤处 → 升级制造，脚本自动开始工作</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Earnings -->
+  <div class="section">
+    <h2><span class="dot"></span>收益参考</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="fi-icon">📅</div>
+        <div class="fi-title">每日收益</div>
+        <div class="fi-desc">270万+ 哈夫币/天<br>全自动循环制造</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">📊</div>
+        <div class="fi-title">每周收益</div>
+        <div class="fi-desc">2000万+ 哈夫币/周<br>持续挂机累积</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">⚡</div>
+        <div class="fi-title">制造速度</div>
+        <div class="fi-desc">4个部门并行<br>智能队列管理</div>
+      </div>
+      <div class="feature-item">
+        <div class="fi-icon">🔄</div>
+        <div class="fi-title">S10 赛季</div>
+        <div class="fi-desc">新子弹+赤枭防具<br>配方已全部适配</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="flogo">🪿 GooseTech</div>
+  <p>游戏智能工具 · 为三角洲行动玩家打造</p>
+  <div class="f-links">
+    <a href="goosetech-radar-landing.html">首页</a>
+    <a href="goosetech-weapons.html">武器库</a>
+    <a href="goosetech-ttk.html">TTK 计算器</a>
+    <a href="goosetech-draw.html">战备抽签</a>
+    <a href="goosetech-autobuild.html">自动建造</a>
+  </div>
+  <div class="copyright">
+    © 2025 GooseTech. Built for Delta Force community. MIT Licensed.<br>
+    本项目仅为技术学习与交流目的，并非游戏外挂或作弊工具。
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const nav=document.querySelector('nav');
+  nav.style.background=window.scrollY>20?'rgba(8,12,16,0.95)':'rgba(8,12,16,0.85)';
+});
+</script>
+</body>
+</html>

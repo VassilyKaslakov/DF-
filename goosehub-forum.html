@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GooseHub — 共有储存论坛</title>
+<style>
+:root {
+  --bg:#f0f2f5; --surface:#fff; --border:#e0e4e8;
+  --text:#1a1a2e; --muted:#6b7280; --light-muted:#9ca3af;
+  --primary:#4f46e5; --primary-hover:#4338ca; --primary-light:#eef2ff;
+  --green:#059669; --green-light:#ecfdf5;
+  --orange:#d97706; --orange-light:#fffbeb;
+  --red:#dc2626; --red-light:#fef2f2;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.06);
+  --radius:10px; --radius-sm:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  line-height:1.6;min-height:100vh;
+}
+
+/* ── Top Bar ── */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;height:56px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:100;
+  box-shadow:var(--shadow);
+}
+.topbar .logo{display:flex;align-items:center;gap:10px;font-size:1.15rem;font-weight:800;color:var(--primary);text-decoration:none;}
+.topbar .logo .icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),#7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;}
+.topbar .topbar-right{display:flex;align-items:center;gap:16px;}
+.topbar .user-area{display:flex;align-items:center;gap:8px;}
+.topbar .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;}
+.topbar .user-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+.topbar .btn-sm{
+  padding:6px 14px;border-radius:var(--radius-sm);font-size:0.78rem;font-weight:600;
+  cursor:pointer;transition:0.15s;border:1px solid var(--border);background:var(--surface);color:var(--text);
+}
+.topbar .btn-sm:hover{background:var(--bg);}
+.topbar .btn-sm.primary{background:var(--primary);color:#fff;border:none;}
+.topbar .btn-sm.primary:hover{background:var(--primary-hover);}
+
+/* ── Layout ── */
+.layout{max-width:1200px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:240px 1fr;gap:24px;}
+@media(max-width:768px){.layout{grid-template-columns:1fr;padding:16px 12px;}}
+
+/* ── Sidebar ── */
+.sidebar{display:flex;flex-direction:column;gap:16px;}
+@media(max-width:768px){.sidebar{display:none;}}
+.sidebar .side-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow);
+}
+.side-card h3{font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;}
+.side-card .cat-list{list-style:none;}
+.side-card .cat-list li{margin-bottom:2px;}
+.side-card .cat-list li a{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-radius:var(--radius-sm);text-decoration:none;
+  color:var(--text);font-size:0.85rem;transition:0.15s;
+}
+.side-card .cat-list li a:hover{background:var(--primary-light);color:var(--primary);}
+.side-card .cat-list li a.active{background:var(--primary-light);color:var(--primary);font-weight:600;}
+.side-card .cat-list li a .count{font-size:0.7rem;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:10px;}
+.side-card .stats{font-size:0.8rem;color:var(--muted);line-height:2;}
+.side-card .stats span{font-weight:700;color:var(--text);}
+
+/* ── Main ── */
+.main-content{min-width:0;}
+.toolbar{
+  display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;
+}
+.toolbar .search-box{
+  flex:1;min-width:200px;padding:10px 16px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:0.85rem;outline:none;
+  background:var(--surface);transition:0.2s;font-family:inherit;
+}
+.toolbar .search-box:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,0.1);}
+.toolbar .btn{
+  padding:10px 20px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;
+  cursor:pointer;transition:0.15s;border:none;font-family:inherit;
+}
+.toolbar .btn-primary{background:var(--primary);color:#fff;}
+.toolbar .btn-primary:hover{background:var(--primary-hover);}
+.toolbar .btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+.toolbar .btn-outline:hover{background:var(--bg);}
+.sort-tabs{display:flex;gap:4px;}
+.sort-tab{
+  padding:8px 16px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:0.15s;
+}
+.sort-tab:hover{color:var(--text);}
+.sort-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* ── Post List ── */
+.post-list{display:flex;flex-direction:column;gap:8px;}
+.post-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 24px;box-shadow:var(--shadow);cursor:pointer;transition:0.15s;
+  display:flex;gap:16px;align-items:flex-start;
+}
+.post-item:hover{border-color:var(--primary);box-shadow:var(--shadow-md);}
+.post-item .post-votes{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:40px;}
+.post-item .post-votes button{
+  width:28px;height:28px;border:1px solid var(--border);border-radius:4px;
+  background:var(--surface);cursor:pointer;font-size:0.9rem;color:var(--muted);transition:0.15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.post-item .post-votes button:hover{background:var(--primary-light);color:var(--primary);border-color:var(--primary);}
+.post-item .post-votes button.voted{background:var(--primary);color:#fff;border-color:var(--primary);}
+.post-item .post-votes .vote-count{font-size:0.8rem;font-weight:700;color:var(--text);}
+.post-item .post-body{flex:1;min-width:0;}
+.post-item .post-category{
+  display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.65rem;font-weight:600;
+  margin-bottom:6px;letter-spacing:0.5px;
+}
+.cat-讨论{background:var(--primary-light);color:var(--primary);}
+.cat-分享{background:var(--green-light);color:var(--green);}
+.cat-提问{background:var(--orange-light);color:var(--orange);}
+.cat-资源{background:var(--red-light);color:var(--red);}
+.cat-公告{background:#fef3c7;color:#92400e;}
+.post-item .post-title{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.4;}
+.post-item .post-title:hover{color:var(--primary);}
+.post-item .post-excerpt{font-size:0.82rem;color:var(--muted);margin-bottom:8px;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.post-item .post-meta{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:0.75rem;color:var(--light-muted);}
+.post-item .post-meta span{display:flex;align-items:center;gap:4px;}
+.post-item .post-meta .has-file{color:var(--primary);font-weight:600;}
+.post-item .post-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.post-item .post-tags span{
+  padding:2px 8px;background:var(--bg);border-radius:4px;font-size:0.68rem;color:var(--muted);
+}
+
+/* ── Pagination ── */
+.pagination{display:flex;gap:6px;justify-content:center;margin-top:24px;}
+.pagination button{
+  padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--surface);cursor:pointer;font-size:0.82rem;color:var(--text);transition:0.15s;
+}
+.pagination button:hover{background:var(--primary-light);color:var(--primary);}
+.pagination button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.pagination button:disabled{opacity:0.4;cursor:default;}
+
+/* ── Post Detail ── */
+.post-detail{display:none;}
+.post-detail.active{display:block;}
+.post-detail .back-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:20px;
+  color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;cursor:pointer;
+}
+.post-detail .back-btn:hover{opacity:0.8;}
+
+.detail-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;box-shadow:var(--shadow);margin-bottom:16px;
+}
+.detail-card .detail-header{margin-bottom:20px;}
+.detail-card .detail-title{font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:8px;}
+.detail-card .detail-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--muted);margin-bottom:16px;}
+.detail-card .detail-meta span{display:flex;align-items:center;gap:4px;}
+.detail-card .detail-content{font-size:0.9rem;line-height:1.9;color:var(--text);margin-bottom:20px;white-space:pre-wrap;word-break:break-word;}
+.detail-card .detail-file{
+  background:var(--primary-light);border:1px solid rgba(79,70,229,0.2);border-radius:var(--radius-sm);
+  padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px;
+}
+.detail-card .detail-file .file-icon{font-size:2rem;}
+.detail-card .detail-file .file-info{flex:1;}
+.detail-card .detail-file .file-name{font-weight:600;font-size:0.85rem;color:var(--text);}
+.detail-card .detail-file .file-size{font-size:0.7rem;color:var(--muted);}
+.detail-card .detail-file .file-download{
+  padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);
+  font-size:0.8rem;font-weight:600;cursor:pointer;transition:0.15s;
+}
+.detail-card .detail-file .file-download:hover{background:var(--primary-hover);}
+.detail-card .detail-actions{display:flex;gap:8px;margin-top:12px;padding-top:16px;border-top:1px solid var(--border);}
+.detail-card .detail-actions button{
+  padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--surface);cursor:pointer;font-size:0.78rem;color:var(--muted);transition:0.15s;
+}
+.detail-card .detail-actions button:hover{background:var(--bg);color:var(--text);}
+
+/* ── Replies ── */
+.replies-section{margin-top:8px;}
+.replies-section h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.reply-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 22px;margin-bottom:8px;box-shadow:var(--shadow);
+}
+.reply-card .reply-header{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.reply-card .reply-author{font-weight:600;font-size:0.85rem;}
+.reply-card .reply-time{font-size:0.72rem;color:var(--light-muted);}
+.reply-card .reply-content{font-size:0.85rem;line-height:1.7;color:var(--text);}
+.reply-card .reply-floor{font-size:0.7rem;color:var(--light-muted);margin-left:auto;}
+
+.reply-form{margin-top:16px;}
+.reply-form textarea{
+  width:100%;min-height:100px;padding:14px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:0.85rem;outline:none;resize:vertical;
+  background:var(--surface);font-family:inherit;transition:0.2s;
+}
+.reply-form textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,0.1);}
+.reply-form button{
+  margin-top:8px;padding:10px 24px;background:var(--primary);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;transition:0.15s;
+}
+.reply-form button:hover{background:var(--primary-hover);}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);border-radius:var(--radius);width:94%;max-width:640px;
+  max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.2);
+}
+.modal h2{font-size:1.3rem;font-weight:800;margin-bottom:20px;}
+.modal .form-group{margin-bottom:16px;}
+.modal .form-group label{display:block;font-size:0.8rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+.modal .form-group input,.modal .form-group select,.modal .form-group textarea{
+  width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:0.85rem;outline:none;background:var(--surface);font-family:inherit;transition:0.2s;
+}
+.modal .form-group input:focus,.modal .form-group select:focus,.modal .form-group textarea:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,0.1);
+}
+.modal .form-group textarea{min-height:140px;resize:vertical;}
+.modal .form-group .file-info-small{font-size:0.72rem;color:var(--muted);margin-top:4px;}
+.modal .form-group .file-warning{font-size:0.7rem;color:var(--orange);margin-top:2px;}
+.modal .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+.modal .modal-actions button{
+  padding:10px 24px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;cursor:pointer;transition:0.15s;
+}
+.modal .btn-cancel{background:var(--bg);border:1px solid var(--border);color:var(--text);}
+.modal .btn-cancel:hover{background:var(--border);}
+.modal .btn-submit{background:var(--primary);color:#fff;border:none;}
+.modal .btn-submit:hover{background:var(--primary-hover);}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;top:20px;right:20px;z-index:300;
+  padding:14px 22px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;
+  color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  transform:translateX(120%);transition:transform 0.3s;max-width:380px;
+}
+.toast.show{transform:translateX(0);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+
+/* ── Empty State ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px;}
+.empty-state h3{font-size:1.1rem;color:var(--text);margin-bottom:6px;}
+.empty-state p{font-size:0.85rem;}
+
+/* ── Mobile nav toggle ── */
+.mobile-cats{display:none;}
+@media(max-width:768px){
+  .mobile-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .mobile-cats a{
+    padding:6px 12px;border-radius:16px;font-size:0.75rem;font-weight:500;
+    text-decoration:none;background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  }
+  .mobile-cats a.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ TOPBAR ════════════ -->
+<div class="topbar">
+  <a href="#" class="logo" onclick="showPostList();return false;">
+    <span class="icon">🪿</span>
+    GooseHub
+  </a>
+  <div class="topbar-right">
+    <span style="font-size:0.78rem;color:var(--muted);" id="onlineHint"></span>
+    <div class="user-area" id="userArea">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <span class="user-name" id="userNameDisplay">未登录</span>
+      <button class="btn-sm" onclick="showLoginModal()" id="btnLogin">登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ LAYOUT ════════════ -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="side-card">
+      <h3>📂 版块分类</h3>
+      <ul class="cat-list" id="catList">
+        <li><a href="#" class="active" data-cat="all" onclick="filterCategory('all',this,event)">📋 全部帖子 <span class="count" id="countAll">0</span></a></li>
+        <li><a href="#" data-cat="讨论" onclick="filterCategory('讨论',this,event)">💬 讨论区 <span class="count" id="countDiscuss">0</span></a></li>
+        <li><a href="#" data-cat="分享" onclick="filterCategory('分享',this,event)">📤 分享区 <span class="count" id="countShare">0</span></a></li>
+        <li><a href="#" data-cat="提问" onclick="filterCategory('提问',this,event)">❓ 提问区 <span class="count" id="countAsk">0</span></a></li>
+        <li><a href="#" data-cat="资源" onclick="filterCategory('资源',this,event)">📦 资源区 <span class="count" id="countResource">0</span></a></li>
+        <li><a href="#" data-cat="公告" onclick="filterCategory('公告',this,event)">📢 公告栏 <span class="count" id="countAnnounce">0</span></a></li>
+      </ul>
+    </div>
+    <div class="side-card">
+      <h3>📊 论坛统计</h3>
+      <div class="stats">
+        <div>📝 帖子总数：<span id="statPosts">0</span></div>
+        <div>💬 回复总数：<span id="statReplies">0</span></div>
+        <div>📎 文件总数：<span id="statFiles">0</span></div>
+        <div>👥 用户总数：<span id="statUsers">0</span></div>
+        <div>💾 储存用量：<span id="statStorage">0 KB</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MOBILE CATEGORIES ── -->
+  <div class="mobile-cats" id="mobileCats">
+    <a href="#" class="active" data-cat="all" onclick="filterCategory('all',this,event)">全部</a>
+    <a href="#" data-cat="讨论" onclick="filterCategory('讨论',this,event)">讨论</a>
+    <a href="#" data-cat="分享" onclick="filterCategory('分享',this,event)">分享</a>
+    <a href="#" data-cat="提问" onclick="filterCategory('提问',this,event)">提问</a>
+    <a href="#" data-cat="资源" onclick="filterCategory('资源',this,event)">资源</a>
+    <a href="#" data-cat="公告" onclick="filterCategory('公告',this,event)">公告</a>
+  </div>
+
+  <!-- ════════════ MAIN CONTENT ════════════ -->
+  <main class="main-content">
+
+    <!-- ── Post List View ── -->
+    <div id="postListView">
+      <div class="toolbar">
+        <input type="text" class="search-box" placeholder="🔍 搜索帖子标题或内容…" id="searchInput" oninput="renderPosts()">
+        <button class="btn btn-primary" onclick="showNewPostModal()" id="btnNewPost">+ 发布帖子</button>
+      </div>
+      <div class="sort-tabs" style="margin-bottom:16px;">
+        <button class="sort-tab active" data-sort="latest" onclick="setSort('latest',this)">🕐 最新</button>
+        <button class="sort-tab" data-sort="hot" onclick="setSort('hot',this)">🔥 热门</button>
+        <button class="sort-tab" data-sort="most_replies" onclick="setSort('most_replies',this)">💬 最多回复</button>
+      </div>
+      <div class="post-list" id="postList"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- ── Post Detail View ── -->
+    <div class="post-detail" id="postDetailView">
+      <a class="back-btn" onclick="showPostList()">← 返回帖子列表</a>
+      <div id="detailContent"></div>
+      <div class="replies-section" id="repliesSection"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════ NEW POST MODAL ════════════ -->
+<div class="modal-overlay" id="newPostModal">
+  <div class="modal">
+    <h2>📝 发布新帖子</h2>
+    <div class="form-group">
+      <label>版块分类</label>
+      <select id="newPostCat">
+        <option value="讨论">💬 讨论区</option>
+        <option value="分享">📤 分享区</option>
+        <option value="提问">❓ 提问区</option>
+        <option value="资源">📦 资源区</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>标题</label>
+      <input type="text" id="newPostTitle" placeholder="输入帖子标题…" maxlength="100">
+    </div>
+    <div class="form-group">
+      <label>内容</label>
+      <textarea id="newPostContent" placeholder="输入帖子内容…支持换行"></textarea>
+    </div>
+    <div class="form-group">
+      <label>📎 附件（可选）</label>
+      <input type="file" id="newPostFile" onchange="handleFileSelect(this)" style="font-size:0.85rem;">
+      <div class="file-info-small">支持图片、文档、压缩包等 · 单文件最大 5MB</div>
+      <div class="file-warning">⚠ 文件将以 Base64 存储在浏览器本地储存中</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNewPostModal()">取消</button>
+      <button class="btn-submit" onclick="submitPost()">发布帖子</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ LOGIN MODAL ════════════ -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h2>👤 设置用户名</h2>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;">输入一个昵称即可参与讨论（仅保存在本地浏览器）</p>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" id="loginUsername" placeholder="输入你的昵称…" maxlength="20">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeLoginModal()">取消</button>
+      <button class="btn-submit" onclick="doLogin()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TOAST ════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA LAYER — localStorage
+// ═══════════════════════════════════════════
+const LS_POSTS = 'goosehub_posts';
+const LS_USER = 'goosehub_user';
+const LS_VOTES = 'goosehub_votes';
+
+function loadPosts(){ try{ return JSON.parse(localStorage.getItem(LS_POSTS)) || []; }catch(e){ return []; } }
+function savePosts(posts){ localStorage.setItem(LS_POSTS, JSON.stringify(posts)); }
+function loadUser(){ try{ return JSON.parse(localStorage.getItem(LS_USER)); }catch(e){ return null; } }
+function saveUser(u){ localStorage.setItem(LS_USER, JSON.stringify(u)); }
+function loadVotes(){ try{ return JSON.parse(localStorage.getItem(LS_VOTES)) || {}; }catch(e){ return {}; } }
+function saveVotes(v){ localStorage.setItem(LS_VOTES, JSON.stringify(v)); }
+
+// ════════════ STATE ════════════
+let posts = loadPosts();
+let currentUser = loadUser();
+let currentCat = 'all';
+let currentSort = 'latest';
+let currentPage = 1;
+let viewingPostId = null;
+const PAGE_SIZE = 10;
+
+// ════════════ INIT ════════════
+function init(){
+  updateUserUI();
+  renderPosts();
+  updateSidebar();
+  updateStats();
+  updateOnlineHint();
+}
+function updateOnlineHint(){
+  const now = new Date();
+  document.getElementById('onlineHint').textContent =
+    `🟢 在线 · ${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+}
+
+// ════════════ USER ════════════
+function updateUserUI(){
+  const area = document.getElementById('userArea');
+  if(currentUser){
+    const init = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('userAvatar').textContent = init;
+    document.getElementById('userNameDisplay').textContent = currentUser.name;
+    document.getElementById('btnLogin').textContent = '换号';
+  } else {
+    document.getElementById('userAvatar').textContent = '?';
+    document.getElementById('userNameDisplay').textContent = '未登录';
+    document.getElementById('btnLogin').textContent = '登录';
+  }
+}
+
+function showLoginModal(){
+  document.getElementById('loginUsername').value = currentUser ? currentUser.name : '';
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function closeLoginModal(){
+  document.getElementById('loginModal').classList.remove('open');
+}
+
+function doLogin(){
+  const name = document.getElementById('loginUsername').value.trim();
+  if(!name){ showToast('请输入用户名','error'); return; }
+  if(name.length > 20){ showToast('用户名最多20个字符','error'); return; }
+  currentUser = { name, registeredAt: Date.now() };
+  saveUser(currentUser);
+  updateUserUI();
+  closeLoginModal();
+  updateStats();
+  showToast(`欢迎，${name}！`,'success');
+}
+
+// ════════════ POSTS ════════════
+function filterCategory(cat, el, e){
+  if(e)e.preventDefault();
+  currentCat = cat;
+  currentPage = 1;
+  document.querySelectorAll('#catList a').forEach(a=>a.classList.remove('active'));
+  document.querySelectorAll('#mobileCats a').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  // Also highlight mobile
+  const mc = document.querySelector(`#mobileCats a[data-cat="${cat}"]`);
+  if(mc)mc.classList.add('active');
+  renderPosts();
+}
+function setSort(sort, el){
+  currentSort = sort;
+  currentPage = 1;
+  document.querySelectorAll('.sort-tab').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderPosts();
+}
+
+function getFilteredPosts(){
+  let filtered = [...posts];
+  if(currentCat !== 'all') filtered = filtered.filter(p=>p.category === currentCat);
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(q) filtered = filtered.filter(p=>p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
+
+  if(currentSort === 'hot') filtered.sort((a,b)=>(b.votes||0)-(a.votes||0));
+  else if(currentSort === 'most_replies') filtered.sort((a,b)=>(b.replies?b.replies.length:0)-(a.replies?a.replies.length:0));
+  else filtered.sort((a,b)=>b.createdAt - a.createdAt); // latest
+
+  return filtered;
+}
+
+function renderPosts(){
+  const filtered = getFilteredPosts();
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pagePosts = filtered.slice(start, start + PAGE_SIZE);
+
+  const container = document.getElementById('postList');
+  if(pagePosts.length === 0){
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📭</div><h3>暂无帖子</h3><p>成为第一个发帖的人吧！</p>
+    </div>`;
+  } else {
+    container.innerHTML = pagePosts.map(p=>renderPostItem(p)).join('');
+  }
+
+  // Pagination
+  const pagEl = document.getElementById('pagination');
+  if(totalPages <= 1){ pagEl.innerHTML = ''; return; }
+  let pagHTML = '';
+  pagHTML += `<button ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})">‹ 上一页</button>`;
+  for(let i=1;i<=totalPages;i++){
+    pagHTML += `<button class="${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  pagHTML += `<button ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1})">下一页 ›</button>`;
+  pagEl.innerHTML = pagHTML;
+}
+
+function goPage(n){ currentPage = n; renderPosts(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function renderPostItem(p){
+  const excerpt = p.content.replace(/\n/g,' ').substring(0,150);
+  const time = new Date(p.createdAt);
+  const timeStr = formatTime(time);
+  const replyCount = p.replies ? p.replies.length : 0;
+  const hasFile = p.fileName ? '📎' : '';
+  const votes = loadVotes();
+  const myVote = votes[p.id] || 0;
+  return `
+  <div class="post-item" onclick="viewPost('${p.id}')">
+    <div class="post-votes" onclick="event.stopPropagation()">
+      <button class="${myVote===1?'voted':''}" onclick="votePost('${p.id}',1)">▲</button>
+      <span class="vote-count">${p.votes||0}</span>
+      <button class="${myVote===-1?'voted':''}" onclick="votePost('${p.id}',-1)">▼</button>
+    </div>
+    <div class="post-body">
+      <span class="post-category cat-${p.category}">${p.category}</span>
+      <div class="post-title">${hasFile} ${escapeHTML(p.title)}</div>
+      <div class="post-excerpt">${escapeHTML(excerpt)}</div>
+      <div class="post-meta">
+        <span>👤 ${escapeHTML(p.author)}</span>
+        <span>🕐 ${timeStr}</span>
+        <span>💬 ${replyCount} 回复</span>
+        <span>👁 ${p.views||0} 浏览</span>
+        ${p.fileName ? `<span class="has-file">📎 ${escapeHTML(p.fileName)}</span>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function escapeHTML(str){
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+
+function formatTime(d){
+  const now = new Date();
+  const diff = now - d;
+  if(diff < 60000) return '刚刚';
+  if(diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+  if(diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+  if(diff < 604800000) return Math.floor(diff/86400000)+'天前';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ════════════ NEW POST ════════════
+let pendingFile = null;
+
+function handleFileSelect(input){
+  const file = input.files[0];
+  if(!file){ pendingFile = null; return; }
+  if(file.size > 5 * 1024 * 1024){ showToast('文件大小不能超过 5MB','error'); input.value=''; pendingFile=null; return; }
+  const reader = new FileReader();
+  reader.onload = ()=> { pendingFile = { name:file.name, size:file.size, type:file.type, data:reader.result }; };
+  reader.readAsDataURL(file);
+}
+
+function showNewPostModal(){
+  if(!currentUser){ showToast('请先登录后再发帖','error'); showLoginModal(); return; }
+  document.getElementById('newPostModal').classList.add('open');
+  document.getElementById('newPostTitle').value = '';
+  document.getElementById('newPostContent').value = '';
+  document.getElementById('newPostFile').value = '';
+  pendingFile = null;
+}
+
+function closeNewPostModal(){
+  document.getElementById('newPostModal').classList.remove('open');
+}
+
+function submitPost(){
+  const title = document.getElementById('newPostTitle').value.trim();
+  const content = document.getElementById('newPostContent').value.trim();
+  const category = document.getElementById('newPostCat').value;
+  if(!title){ showToast('请输入标题','error'); return; }
+  if(!content){ showToast('请输入内容','error'); return; }
+
+  const post = {
+    id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+    title, content, category,
+    author: currentUser.name,
+    createdAt: Date.now(),
+    views: 0,
+    votes: 0,
+    replies: [],
+    fileName: pendingFile ? pendingFile.name : null,
+    fileSize: pendingFile ? pendingFile.size : null,
+    fileType: pendingFile ? pendingFile.type : null,
+    fileData: pendingFile ? pendingFile.data : null,
+  };
+  posts.unshift(post);
+  savePosts(posts);
+  closeNewPostModal();
+  currentPage = 1;
+  renderPosts();
+  updateSidebar();
+  updateStats();
+  showToast('帖子发布成功！','success');
+}
+
+// ════════════ POST DETAIL ════════════
+function viewPost(id){
+  const p = posts.find(x=>x.id===id);
+  if(!p) return;
+  viewingPostId = id;
+  p.views = (p.views||0) + 1;
+  savePosts(posts);
+
+  document.getElementById('postListView').style.display = 'none';
+  document.getElementById('postDetailView').classList.add('active');
+
+  const time = new Date(p.createdAt);
+  const replyCount = p.replies ? p.replies.length : 0;
+
+  let fileHTML = '';
+  if(p.fileData){
+    const sizeStr = p.fileSize > 1024*1024 ? (p.fileSize/1024/1024).toFixed(1)+' MB' : (p.fileSize/1024).toFixed(1)+' KB';
+    const fileEmoji = p.fileType?.startsWith('image/') ? '🖼️' : '📄';
+    fileHTML = `
+    <div class="detail-file">
+      <div class="file-icon">${fileEmoji}</div>
+      <div class="file-info">
+        <div class="file-name">${escapeHTML(p.fileName)}</div>
+        <div class="file-size">${sizeStr} · ${p.fileType||'未知类型'}</div>
+      </div>
+      <button class="file-download" onclick="event.stopPropagation();downloadFile('${p.id}')">⬇ 下载</button>
+    </div>`;
+  }
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-card">
+      <div class="detail-header">
+        <span class="post-category cat-${p.category}">${p.category}</span>
+        <div class="detail-title">${escapeHTML(p.title)}</div>
+        <div class="detail-meta">
+          <span>👤 ${escapeHTML(p.author)}</span>
+          <span>🕐 ${formatTime(time)}</span>
+          <span>💬 ${replyCount} 回复</span>
+          <span>👁 ${p.views} 浏览</span>
+          ${p.fileName ? `<span>📎 ${escapeHTML(p.fileName)}</span>` : ''}
+        </div>
+      </div>
+      ${fileHTML}
+      <div class="detail-content">${escapeHTML(p.content)}</div>
+    </div>`;
+
+  // Replies
+  const repliesEl = document.getElementById('repliesSection');
+  let repliesHTML = `<h3>💬 回复 (${replyCount})</h3>`;
+  if(p.replies && p.replies.length > 0){
+    repliesHTML += p.replies.map((r,i)=>
+      `<div class="reply-card">
+        <div class="reply-header">
+          <span class="reply-author">👤 ${escapeHTML(r.author)}</span>
+          <span class="reply-time">${formatTime(new Date(r.createdAt))}</span>
+          <span class="reply-floor">#${i+1}楼</span>
+        </div>
+        <div class="reply-content">${escapeHTML(r.content)}</div>
+      </div>`
+    ).join('');
+  } else {
+    repliesHTML += `<div style="color:var(--muted);font-size:0.85rem;padding:16px 0;">暂无回复，来抢沙发吧~</div>`;
+  }
+  repliesHTML += `
+    <div class="reply-form">
+      <textarea id="replyContent" placeholder="输入你的回复…"></textarea>
+      <button onclick="submitReply('${p.id}')">发表回复</button>
+    </div>`;
+  repliesEl.innerHTML = repliesHTML;
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showPostList(){
+  viewingPostId = null;
+  document.getElementById('postListView').style.display = 'block';
+  document.getElementById('postDetailView').classList.remove('active');
+  renderPosts();
+  updateSidebar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function submitReply(postId){
+  if(!currentUser){ showToast('请先登录','error'); showLoginModal(); return; }
+  const content = document.getElementById('replyContent').value.trim();
+  if(!content){ showToast('请输入回复内容','error'); return; }
+
+  const p = posts.find(x=>x.id===postId);
+  if(!p) return;
+  if(!p.replies) p.replies = [];
+  p.replies.push({ author:currentUser.name, content, createdAt:Date.now() });
+  savePosts(posts);
+  viewPost(postId);
+  updateStats();
+  showToast('回复成功！','success');
+}
+
+// ════════════ VOTE ════════════
+function votePost(postId, val){
+  if(!currentUser){ showToast('请先登录','error'); showLoginModal(); return; }
+  const votes = loadVotes();
+  const prev = votes[postId] || 0;
+  const p = posts.find(x=>x.id===postId);
+  if(!p) return;
+  if(prev === val){
+    delete votes[postId];
+    p.votes -= val;
+  } else {
+    p.votes = (p.votes||0) - prev + val;
+    votes[postId] = val;
+  }
+  saveVotes(votes);
+  savePosts(posts);
+  if(viewingPostId) viewPost(viewingPostId);
+  else renderPosts();
+}
+
+// ════════════ DOWNLOAD ════════════
+function downloadFile(postId){
+  const p = posts.find(x=>x.id===postId);
+  if(!p || !p.fileData) return;
+  const a = document.createElement('a');
+  a.href = p.fileData;
+  a.download = p.fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ════════════ SIDEBAR ════════════
+function updateSidebar(){
+  document.getElementById('countAll').textContent = posts.length;
+  document.getElementById('countDiscuss').textContent = posts.filter(p=>p.category==='讨论').length;
+  document.getElementById('countShare').textContent = posts.filter(p=>p.category==='分享').length;
+  document.getElementById('countAsk').textContent = posts.filter(p=>p.category==='提问').length;
+  document.getElementById('countResource').textContent = posts.filter(p=>p.category==='资源').length;
+  document.getElementById('countAnnounce').textContent = posts.filter(p=>p.category==='公告').length;
+}
+
+function updateStats(){
+  document.getElementById('statPosts').textContent = posts.length;
+  const totalReplies = posts.reduce((sum,p)=>sum+(p.replies?p.replies.length:0),0);
+  document.getElementById('statReplies').textContent = totalReplies;
+  const withFiles = posts.filter(p=>p.fileData).length;
+  document.getElementById('statFiles').textContent = withFiles;
+
+  // Unique users: from posts + replies + current user
+  const users = new Set();
+  posts.forEach(p=>{ users.add(p.author); if(p.replies)p.replies.forEach(r=>users.add(r.author)); });
+  if(currentUser) users.add(currentUser.name);
+  document.getElementById('statUsers').textContent = users.size;
+
+  // Storage usage
+  let totalBytes = 0;
+  posts.forEach(p=>{ if(p.fileData) totalBytes += (p.fileSize||0); });
+  // Also include raw localStorage size
+  const lsSize = new Blob([JSON.stringify(localStorage)]).size;
+  totalBytes += lsSize;
+  const kb = (totalBytes / 1024).toFixed(1);
+  document.getElementById('statStorage').textContent = kb + ' KB';
+}
+
+// ════════════ TOAST ════════════
+function showToast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(()=>{ t.classList.remove('show'); }, 2500);
+}
+
+// ════════════ MODAL CLICK OUTSIDE ════════════
+document.getElementById('newPostModal').addEventListener('click', function(e){
+  if(e.target === this) closeNewPostModal();
+});
+document.getElementById('loginModal').addEventListener('click', function(e){
+  if(e.target === this) closeLoginModal();
+});
+
+// ════════════ KEYBOARD SHORTCUTS ════════════
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    closeNewPostModal();
+    closeLoginModal();
+    if(viewingPostId) showPostList();
+  }
+});
+
+// ════════════ SEED DEMO DATA ════════════
+function seedDemoData(){
+  if(posts.length > 0) return; // Don't seed if already has data
+  const demos = [
+    {title:'欢迎来到 GooseHub 共有储存论坛！',content:'这是论坛的第一篇帖子。\n\nGooseHub 是一个轻量级的社区论坛，你可以在这里：\n• 发布帖子参与讨论\n• 上传文件与大家分享\n• 回复他人的帖子\n• 按版块分类浏览内容\n\n所有数据都存储在浏览器的本地储存中，无需注册账号，输入昵称即可参与！\n\n快来发帖吧！',category:'公告',author:'系统管理员',views:128,replies:[{author:'新用户',content:'太棒了！终于找到一个简单好用的论坛。',createdAt:Date.now()-3600000}]},
+    {title:'分享：我收集的编程学习资源合集',content:'整理了一份编程学习资源列表，包含：\n1. MDN Web 文档\n2. FreeCodeCamp\n3. CS50 哈佛公开课\n4. LeetCode 刷题平台\n\n希望对大家有帮助！',category:'分享',author:'开发者小明',views:56},
+    {title:'Python 和 JavaScript 哪个更适合新手？',content:'想学编程，纠结先学 Python 还是 JavaScript。\n\nPython 语法简单，JS 可以做网页。大家有什么建议？',category:'提问',author:'编程新手',views:89,replies:[{author:'资深码农',content:'建议先学 Python，语法简洁，适合建立编程思维。之后再学 JS 上手也很快。',createdAt:Date.now()-7200000},{author:'前端开发',content:'如果想做网站就学 JS，想做数据分析/AI就 Python。',createdAt:Date.now()-3600000}]},
+    {title:'三角洲行动 S10 赛季武器推荐',content:'S10赛季个人推荐：\n\n近战：AS Val巨浪（射速972，30米内无敌）\n中距离：M14射手步枪（全自动高伤）\n远程：M7堤风（四枪致死重甲）\n\n大家还有什么推荐？',category:'讨论',author:'战术玩家',views:210,replies:[{author:'FPS老鸟',content:'SCAR-H 的伤害衰减在S10被加强了，中远距离也能打。',createdAt:Date.now()-5400000}]},
+    {title:'免费开源工具推荐合集',content:'分享一些我常用的开源工具：\n\n🖼️ GIMP - 图片编辑\n🎬 OBS - 录屏直播\n📝 Notepad++ - 文本编辑\n🎵 Audacity - 音频处理\n📦 7-Zip - 压缩解压\n\n都是免费又好用的！',category:'资源',author:'工具达人',views:45},
+  ];
+  demos.forEach(d=>{
+    posts.push({
+      id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+      ...d, createdAt: Date.now() - Math.random()*86400000*7,
+      votes: Math.floor(Math.random()*20),
+    });
+  });
+  savePosts(posts);
+}
+
+// ════════════ START ════════════
+seedDemoData();
+init();
+
+// Auto-refresh stats every 30s
+setInterval(updateStats, 30000);
+</script>
+</body>
+</html>

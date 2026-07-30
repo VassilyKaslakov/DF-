@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三角洲行动 - 战术雷达地图全集</title>
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #12161e;
+    --border: #1e2633;
+    --text: #c8ccd4;
+    --text-muted: #6b7280;
+    --accent: #00e5ff;
+    --danger: #ff3d4f;
+    --warning: #ffab00;
+    --loot: #ff6d00;
+    --spawn: #00e676;
+    --extract: #448aff;
+    --terrain: #1a2030;
+    --building: #1e2840;
+    --grid: rgba(255,255,255,0.04);
+    --water: #0d2137;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    overflow-x: hidden;
+  }
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .app-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #fff;
+  }
+  .app-header .subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+  .mode-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .mode-tab {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .mode-tab:hover { border-color: #555; color: #ddd; }
+  .mode-tab.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .main-layout {
+    display: flex;
+    height: calc(100vh - 65px);
+  }
+  .sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 8px 0;
+    flex-shrink: 0;
+  }
+  .sidebar-section {
+    padding: 8px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .map-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    font-size: 13px;
+  }
+  .map-item:hover { background: rgba(255,255,255,0.03); }
+  .map-item.active {
+    background: rgba(0,229,255,0.06);
+    border-left-color: var(--accent);
+    color: #fff;
+  }
+  .map-item .difficulty-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .map-item .map-name { flex:1; }
+  .map-item .map-mode {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .radar-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background:
+      radial-gradient(circle at center, rgba(0,229,255,0.03) 0%, transparent 70%),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+  }
+  .radar-container canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .info-panel {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+  .info-block h3 {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .info-block .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .stat-grid {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ddd;
+  }
+  .legend-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .legend-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .legend-dot::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legend-dot.spawn::before { background: var(--spawn); }
+  .legend-dot.extract::before { background: var(--extract); }
+  .legend-dot.loot::before { background: var(--loot); }
+  .legend-dot.danger::before { background: var(--danger); }
+  .legend-dot.boss::before { background: var(--warning); }
+  .tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: rgba(10,14,20,0.95);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #ddd;
+    z-index: 200;
+    display: none;
+    max-width: 200px;
+  }
+  .map-label {
+    position: absolute;
+    top: 16px;
+    left: 24px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(0,229,255,0.3);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>三角洲行动<span class="subtitle"> · 战术雷达地图</span></h1>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="hazard">烽火地带</button>
+    <button class="mode-tab" data-mode="warfare">全面战场</button>
+  </div>
+</div>
+
+<div class="main-layout">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="content-area">
+    <div class="radar-container" id="radarContainer">
+      <canvas id="radarCanvas"></canvas>
+    </div>
+    <div class="info-panel" id="infoPanel"></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ==================== MAP DATA ====================
+const MAPS = {
+  hazard: [
+    {
+      id: 'zero-dam',
+      name: '零号大坝',
+      nameEn: 'Zero Dam',
+      difficulty: 1,
+      modes: ['普通','机密','永夜'],
+      size: '中型',
+      spawns: 14,
+      players: '18-21人',
+      entryFee: '0 ~ 18.75万',
+      desc: '新手入门首选，室内CQB近战为主，行政楼为核心交战区',
+      // Layout data for radar rendering
+      terrain: [
+        { type:'water', label:'水库/大坝', x:0.15, y:0.08, w:0.70, h:0.18, color:'#0d2137' },
+        { type:'road', label:'主干道', x:0.10, y:0.35, w:0.80, h:0.04, color:'#2a3040' },
+      ],
+      buildings: [
+        { label:'行政辖区', x:0.35, y:0.22, w:0.30, h:0.35, floors:4, highValue:true, desc:'行政楼+东西楼+地下弹药库+金库' },
+        { label:'主变电站', x:0.62, y:0.48, w:0.16, h:0.18, floors:2, desc:'拉闸撤离触发点' },
+        { label:'军营', x:0.08, y:0.22, w:0.14, h:0.14, floors:2, desc:'外围资源区' },
+        { label:'水泥厂', x:0.20, y:0.52, w:0.16, h:0.16, floors:2, desc:'工业区资源点' },
+        { label:'游客中心', x:0.72, y:0.28, w:0.16, h:0.16, floors:2, desc:'疗养院区域' },
+        { label:'坝顶通道', x:0.30, y:0.06, w:0.40, h:0.08, floors:1, desc:'坝顶下方通道' },
+      ],
+      spawns: [
+        { x:0.05, y:0.15 },{ x:0.05, y:0.40 },{ x:0.20, y:0.10 },
+        { x:0.40, y:0.08 },{ x:0.60, y:0.06 },{ x:0.85, y:0.12 },
+        { x:0.90, y:0.35 },
+        { x:0.05, y:0.65 },{ x:0.28, y:0.70 },{ x:0.50, y:0.75 },
+        { x:0.70, y:0.68 },{ x:0.88, y:0.62 },{ x:0.55, y:0.55 },
+        { x:0.35, y:0.60 },
+      ],
+      extracts: [
+        { x:0.42, y:0.32, type:'拉闸', label:'行政楼拉闸' },
+        { x:0.68, y:0.52, type:'拉闸', label:'变电站拉闸' },
+        { x:0.78, y:0.20, type:'付费', label:'游客中心付费撤离' },
+      ],
+      hotZones: [
+        { x:0.50, y:0.30, r:0.12, label:'行政楼核心交火区' },
+        { x:0.68, y:0.52, r:0.08, label:'变电站争夺区' },
+      ],
+      lootZones: [
+        { x:0.42, y:0.22, r:0.08, label:'金库高价值区' },
+        { x:0.30, y:0.38, r:0.05, label:'地下弹药库' },
+        { x:0.10, y:0.28, r:0.04, label:'军营物资' },
+      ]
+    },
+    {
+      id: 'longbow',
+      name: '长弓溪谷',
+      nameEn: 'Longbow Valley',
+      difficulty: 2,
+      modes: ['普通','机密'],
+      size: '大型',
+      spawns: 22,
+      players: '18-21人',
+      entryFee: '0 ~ 11.25万',
+      desc: '辽阔狙击地图，雷达站制高点控制全图视野',
+      buildings: [
+        { label:'雷达站', x:0.78, y:0.12, w:0.14, h:0.14, floors:3, highValue:true, desc:'全图最高点，狙击手压制位' },
+        { label:'钻石皇后酒店', x:0.42, y:0.38, w:0.18, h:0.22, floors:3, highValue:true, desc:'核心交战区，连排房撤离点' },
+        { label:'阿米娅小镇', x:0.62, y:0.55, w:0.22, h:0.18, floors:2, desc:'多栋建筑，房顶可架枪' },
+        { label:'码头', x:0.52, y:0.68, w:0.14, h:0.10, floors:1, desc:'水边资源点' },
+        { label:'车站', x:0.72, y:0.42, w:0.08, h:0.08, floors:1, desc:'交通枢纽' },
+        { label:'变电站', x:0.38, y:0.62, w:0.10, h:0.10, floors:1, desc:'铁门后物资' },
+        { label:'坠机之地', x:0.28, y:0.50, w:0.12, h:0.10, floors:1, desc:'坠机残骸资源' },
+        { label:'沙径牧场', x:0.12, y:0.52, w:0.14, h:0.10, floors:1, desc:'集装箱资源点' },
+        { label:'加尔比旧址', x:0.05, y:0.45, w:0.10, h:0.12, floors:1, desc:'外围废墟' },
+        { label:'废弃仓库', x:0.55, y:0.25, w:0.10, h:0.08, floors:1, desc:'交叉火力点' },
+        { label:'荒村', x:0.10, y:0.25, w:0.08, h:0.08, floors:1, desc:'鸟窝房物资' },
+      ],
+      spawns: [
+        { x:0.05,y:0.08 },{ x:0.20,y:0.06 },{ x:0.35,y:0.08 },{ x:0.85,y:0.08 },
+        { x:0.08,y:0.22 },{ x:0.22,y:0.18 },{ x:0.90,y:0.22 },
+        { x:0.06,y:0.55 },{ x:0.25,y:0.62 },{ x:0.45,y:0.55 },
+        { x:0.65,y:0.62 },{ x:0.85,y:0.58 },
+        { x:0.08,y:0.78 },{ x:0.28,y:0.85 },{ x:0.48,y:0.82 },
+        { x:0.65,y:0.80 },{ x:0.82,y:0.76 },
+        { x:0.65,y:0.45 },{ x:0.55,y:0.15 },{ x:0.38,y:0.28 },
+        { x:0.18,y:0.35 },
+      ],
+      extracts: [
+        { x:0.50, y:0.45, type:'高风险', label:'酒店连排房' },
+        { x:0.82, y:0.15, type:'高风险', label:'雷达站主楼' },
+      ],
+      hotZones: [
+        { x:0.50, y:0.45, r:0.10, label:'酒店核心交火' },
+        { x:0.82, y:0.15, r:0.08, label:'雷达站争夺' },
+        { x:0.65, y:0.55, r:0.07, label:'小镇巷战' },
+      ],
+      lootZones: [
+        { x:0.45, y:0.35, r:0.06, label:'酒店高价值' },
+        { x:0.80, y:0.10, r:0.05, label:'雷达站3楼' },
+        { x:0.30, y:0.52, r:0.04, label:'坠机物资' },
+      ]
+    },
+    {
+      id: 'baksh',
+      name: '巴克什',
+      nameEn: 'Baksh',
+      difficulty: 3,
+      modes: ['机密','绝密'],
+      size: '中型',
+      spawns: 11,
+      players: '15-18人',
+      entryFee: '18.75万 ~ 55万',
+      desc: '绝密最赚钱地图，巴别塔制霸+博物馆劝架核心',
+      buildings: [
+        { label:'巴别塔', x:0.42, y:0.10, w:0.16, h:0.18, floors:5, highValue:true, desc:'塔顶身份牌绑定撤离，高度压制' },
+        { label:'皇家博物馆', x:0.35, y:0.42, w:0.24, h:0.22, floors:3, highValue:true, desc:'分层地图，劝架核心区' },
+        { label:'集市(雅集)', x:0.62, y:0.38, w:0.18, h:0.16, floors:2, desc:'协议箱房内前台，核心交战' },
+        { label:'浴场', x:0.70, y:0.22, w:0.14, h:0.14, floors:2, desc:'丢包撤离点' },
+        { label:'阿萨拉营地', x:0.08, y:0.32, w:0.14, h:0.12, floors:1, desc:'出生点附近' },
+        { label:'停车场', x:0.60, y:0.60, w:0.14, h:0.10, floors:1, desc:'废弃火车旁' },
+        { label:'蓝鹉山城', x:0.18, y:0.65, w:0.16, h:0.12, floors:2, desc:'外围区域' },
+      ],
+      spawns: [
+        { x:0.08,y:0.15 },{ x:0.30,y:0.06 },{ x:0.55,y:0.06 },
+        { x:0.05,y:0.45 },{ x:0.20,y:0.38 },{ x:0.78,y:0.15 },
+        { x:0.12,y:0.72 },{ x:0.35,y:0.78 },{ x:0.65,y:0.75 },
+        { x:0.82,y:0.50 },{ x:0.88,y:0.30 },
+      ],
+      extracts: [
+        { x:0.48, y:0.12, type:'拉闸', label:'巴别塔拉闸' },
+        { x:0.72, y:0.25, type:'丢包', label:'浴场丢包' },
+        { x:0.50, y:0.08, type:'特殊', label:'塔顶身份牌' },
+        { x:0.25, y:0.50, type:'特殊', label:'博士撤离' },
+      ],
+      hotZones: [
+        { x:0.42, y:0.48, r:0.12, label:'博物馆劝架区' },
+        { x:0.48, y:0.16, r:0.08, label:'巴别塔核心' },
+        { x:0.66, y:0.42, r:0.07, label:'集市交火' },
+      ],
+      lootZones: [
+        { x:0.38, y:0.40, r:0.06, label:'博物馆高价值' },
+        { x:0.48, y:0.08, r:0.04, label:'塔顶物资' },
+        { x:0.65, y:0.35, r:0.04, label:'集市协议箱' },
+      ]
+    },
+    {
+      id: 'space-base',
+      name: '航天基地',
+      nameEn: 'Space Base',
+      difficulty: 4,
+      modes: ['机密','绝密'],
+      size: '小型',
+      spawns: 8,
+      players: '12-15人',
+      entryFee: '18.75万 ~ 60万',
+      desc: '纯战斗地图，五套六套猛攻玩家首选',
+      buildings: [
+        { label:'中控', x:0.38, y:0.48, w:0.14, h:0.14, floors:2, highValue:true, desc:'核心控制区' },
+        { label:'宿舍楼', x:0.28, y:0.35, w:0.12, h:0.14, floors:3, desc:'3号宿舍楼橱柜' },
+        { label:'总裁室', x:0.48, y:0.35, w:0.12, h:0.12, floors:1, highValue:true, desc:'进门桌高价值物资' },
+        { label:'打印室', x:0.60, y:0.48, w:0.10, h:0.10, floors:1, desc:'外侧花坛右侧' },
+        { label:'发射区', x:0.42, y:0.10, w:0.24, h:0.16, floors:1, desc:'火箭发射区，机枪兵守卫' },
+        { label:'水平试车间', x:0.68, y:0.35, w:0.16, h:0.16, floors:1, desc:'丢包撤离，需切割铁丝网' },
+      ],
+      spawns: [
+        { x:0.15,y:0.25 },{ x:0.25,y:0.45 },{ x:0.55,y:0.25 },
+        { x:0.75,y:0.42 },
+        { x:0.08,y:0.62 },{ x:0.35,y:0.75 },{ x:0.62,y:0.68 },
+        { x:0.85,y:0.60 },
+      ],
+      extracts: [
+        { x:0.72, y:0.38, type:'丢包', label:'试车间丢包' },
+        { x:0.42, y:0.45, type:'双拉闸', label:'中控双闸' },
+        { x:0.50, y:0.08, type:'特殊', label:'飞升撤离(火箭)' },
+      ],
+      hotZones: [
+        { x:0.42, y:0.50, r:0.10, label:'中控核心区' },
+        { x:0.55, y:0.38, r:0.06, label:'总裁室' },
+        { x:0.72, y:0.38, r:0.07, label:'试车间争夺' },
+      ],
+      lootZones: [
+        { x:0.42, y:0.48, r:0.05, label:'中控二楼' },
+        { x:0.50, y:0.35, r:0.04, label:'总裁室' },
+        { x:0.30, y:0.35, r:0.04, label:'宿舍楼' },
+      ]
+    },
+    {
+      id: 'tidal-prison',
+      name: '潮汐监狱',
+      nameEn: 'Tidal Prison',
+      difficulty: 5,
+      modes: ['绝密'],
+      size: '大型(复杂)',
+      spawns: 14,
+      players: '19-21人',
+      entryFee: '78万 + 8万',
+      desc: 'S5新地图，水下+地上4层+地下2层，高风险高回报',
+      buildings: [
+        { label:'东侧牢房区', x:0.58, y:0.20, w:0.18, h:0.18, floors:3, desc:'东西对称三层互通牢房' },
+        { label:'西侧牢房区', x:0.24, y:0.20, w:0.18, h:0.18, floors:3, desc:'东西对称三层互通牢房' },
+        { label:'行政区', x:0.48, y:0.35, w:0.20, h:0.16, floors:2, highValue:true, desc:'雷达屏蔽区，典狱长收藏室' },
+        { label:'综合区', x:0.38, y:0.52, w:0.24, h:0.18, floors:2, desc:'食堂/图书馆/洗浴/洗衣' },
+        { label:'医疗区', x:0.65, y:0.38, w:0.14, h:0.14, floors:2, desc:'生物样本室' },
+        { label:'装卸区', x:0.12, y:0.48, w:0.16, h:0.12, floors:1, desc:'C4炸门通道' },
+        { label:'东西瞭望台', x:0.08, y:0.15, w:0.10, h:0.10, floors:3, desc:'狙击视野' },
+        { label:'水动力渠', x:0.18, y:0.72, w:0.14, h:0.12, floors:1, desc:'外围水域资源' },
+        { label:'施工区', x:0.78, y:0.65, w:0.14, h:0.14, floors:1, desc:'水下丢包撤离' },
+      ],
+      spawns: [
+        { x:0.08,y:0.22 },{ x:0.30,y:0.08 },{ x:0.50,y:0.08 },{ x:0.72,y:0.15 },
+        { x:0.05,y:0.55 },{ x:0.28,y:0.60 },{ x:0.55,y:0.55 },{ x:0.82,y:0.45 },
+        { x:0.15,y:0.85 },{ x:0.40,y:0.82 },{ x:0.65,y:0.80 },
+        { x:0.88,y:0.25 },{ x:0.88,y:0.72 },{ x:0.35,y:0.35 },
+      ],
+      extracts: [
+        { x:0.50, y:0.38, type:'拉闸', label:'行政区管道撤离' },
+        { x:0.35, y:0.20, type:'管道', label:'管道撤离点(3选1)' },
+        { x:0.42, y:0.80, type:'直升机', label:'水面直升机(最后6分钟)' },
+        { x:0.80, y:0.68, type:'丢包', label:'施工区水下丢包' },
+      ],
+      hotZones: [
+        { x:0.50, y:0.38, r:0.10, label:'行政区核心' },
+        { x:0.42, y:0.55, r:0.08, label:'综合区交火' },
+      ],
+      lootZones: [
+        { x:0.52, y:0.32, r:0.05, label:'典狱长收藏室' },
+        { x:0.48, y:0.50, r:0.04, label:'办公大厅' },
+        { x:0.65, y:0.40, r:0.04, label:'生物样本室' },
+      ]
+    }
+  ],
+  warfare: [
+    {
+      id: 'climb', name: '攀升', nameEn: 'Climb', tier: 'S',
+      size: '大型', zones: 'A滩头→B营地→C洞穴→D尖塔', time: '~25分钟',
+      desc: '诺曼底登陆风格，4阶段推进，尖塔可倒塌', hasVehicles: true,
+      buildings: [
+        { label:'A滩头阵地', x:0.05,y:0.62, w:0.22,h:0.30, floors:1, desc:'无掩体滩头，突击艇登陆' },
+        { label:'B1临时营地', x:0.28,y:0.45, w:0.16,h:0.16, floors:1, desc:'可破坏墙体' },
+        { label:'B2分离站', x:0.45,y:0.45, w:0.12,h:0.14, floors:1 },
+        { label:'C洞穴入口', x:0.58,y:0.30, w:0.14,h:0.12, floors:1, desc:'狭窄洞口，烟雾强冲' },
+        { label:'C2主通道', x:0.65,y:0.15, w:0.12,h:0.14, floors:1, desc:'可通行坦克' },
+        { label:'D尖塔平台', x:0.78,y:0.05, w:0.16,h:0.16, floors:2, desc:'最终决战，4发导弹倒塌' },
+        { label:'山体高点', x:0.35,y:0.20, w:0.12,h:0.12, floors:1, desc:'B点后可抢占' },
+      ],
+      spawns: [
+        { x:0.02,y:0.78 },{ x:0.15,y:0.75 },{ x:0.02,y:0.55 },
+      ],
+      extracts: [],
+      hotZones: [
+        { x:0.15,y:0.70, r:0.10, label:'滩头登陆战' },
+        { x:0.62,y:0.32, r:0.08, label:'洞穴绞肉机' },
+        { x:0.82,y:0.10, r:0.08, label:'尖塔决战' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'trench', name: '壕沟战', nameEn: 'Trench Battle', tier: 'S',
+      size: '最大', zones: 'A→B→C→D→E 五段推进', time: '~30分钟',
+      desc: '全图最大，一战风格堑壕，载具充足', hasVehicles: true,
+      buildings: [
+        { label:'B1据点', x:0.25,y:0.40, w:0.14,h:0.14, floors:1, desc:'岸防炮+小屋信标' },
+        { label:'C区阵地', x:0.45,y:0.25, w:0.14,h:0.14, floors:1 },
+        { label:'D区斜坡', x:0.62,y:0.15, w:0.14,h:0.14, floors:1, desc:'大斜坡+栅栏伏击' },
+        { label:'E区最终', x:0.80,y:0.08, w:0.14,h:0.14, floors:1, desc:'楼房地下区域' },
+        { label:'A区起点', x:0.08,y:0.55, w:0.14,h:0.14, floors:1 },
+      ],
+      spawns: [{ x:0.02,y:0.65 },{ x:0.10,y:0.55 }],
+      extracts: [],
+      hotZones: [
+        { x:0.28,y:0.42, r:0.07, label:'B区防守' },
+        { x:0.65,y:0.18, r:0.07, label:'D区斜坡' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'critical', name: '临界点', nameEn: 'Critical Point', tier: 'S',
+      size: '大型', zones: 'A市中心→B海墙→C气象室', time: '~20分钟',
+      desc: '港口城市，偏载具图，攻守平衡，新手友好', hasVehicles: true,
+      buildings: [
+        { label:'A市中心', x:0.08,y:0.45, w:0.22,h:0.30, floors:2, desc:'三方向进攻，天桥绕后' },
+        { label:'B1疏散通道', x:0.38,y:0.40, w:0.16,h:0.18, floors:1, desc:'宽阔内部通道' },
+        { label:'B2海墙', x:0.55,y:0.38, w:0.12,h:0.16, floors:1 },
+        { label:'C1监控区', x:0.70,y:0.20, w:0.14,h:0.16, floors:2, desc:'外墙可破坏，连接通道可炸毁' },
+        { label:'C2气象室', x:0.82,y:0.18, w:0.12,h:0.12, floors:1 },
+        { label:'天桥', x:0.18,y:0.38, w:0.12,h:0.04, floors:1, desc:'侦察兵优先抢占' },
+        { label:'加油站', x:0.05,y:0.35, w:0.08,h:0.08, floors:1 },
+      ],
+      spawns: [{ x:0.02,y:0.55 },{ x:0.10,y:0.65 }],
+      extracts: [],
+      hotZones: [
+        { x:0.15,y:0.55, r:0.09, label:'市中心巷战' },
+        { x:0.74,y:0.24, r:0.07, label:'C区决战' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'ember', name: '烬区', nameEn: 'Ember Zone', tier: 'A',
+      size: '中型', zones: 'A岩下村→B营地/贫民窟→C仓库/办公室', time: '~18分钟',
+      desc: '巷战为主，C1仓库可被制导导弹直接夷为平地', hasVehicles: true,
+      buildings: [
+        { label:'A岩下村', x:0.08,y:0.45, w:0.20,h:0.22, floors:2, desc:'西侧高地压制' },
+        { label:'B1临时营地', x:0.35,y:0.42, w:0.16,h:0.16, floors:1 },
+        { label:'B2贫民窟', x:0.52,y:0.42, w:0.14,h:0.14, floors:1 },
+        { label:'C1军需仓库', x:0.70,y:0.22, w:0.16,h:0.18, floors:2, desc:'可被2枚导弹夷平！' },
+        { label:'C2办公室', x:0.82,y:0.35, w:0.12,h:0.14, floors:1 },
+      ],
+      spawns: [{ x:0.02,y:0.55 }],
+      extracts: [],
+      hotZones: [
+        { x:0.15,y:0.50, r:0.08, label:'A区压制' },
+        { x:0.74,y:0.26, r:0.08, label:'C1仓库' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'blade', name: '刀锋', nameEn: 'Blade', tier: 'A',
+      size: '小型', zones: '纯步战，炸毁坝顶', time: '~15分钟',
+      desc: '纯步战图，炸毁后的大坝坝顶近距离对抗', hasVehicles: false,
+      buildings: [
+        { label:'坝顶主战区', x:0.25,y:0.30, w:0.50,h:0.35, floors:1, desc:'炸毁坝顶，纯步战' },
+        { label:'北侧入口', x:0.35,y:0.10, w:0.30,h:0.12, floors:1 },
+        { label:'南侧入口', x:0.35,y:0.75, w:0.30,h:0.12, floors:1 },
+      ],
+      spawns: [{ x:0.15,y:0.12 },{ x:0.75,y:0.80 }],
+      extracts: [],
+      hotZones: [
+        { x:0.50,y:0.48, r:0.15, label:'坝顶核心' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'broken-rail', name: '断轨', nameEn: 'Broken Rail', tier: 'A',
+      size: '中型', zones: '矿区火车脱轨线路', time: '~18分钟',
+      desc: '矿区场景，火车脱轨线路，中近距离交火', hasVehicles: true,
+      buildings: [
+        { label:'矿区主楼', x:0.30,y:0.35, w:0.20,h:0.20, floors:2 },
+        { label:'脱轨火车', x:0.55,y:0.25, w:0.25,h:0.08, floors:1, desc:'长条形掩体' },
+        { label:'矿坑入口', x:0.65,y:0.55, w:0.16,h:0.18, floors:1 },
+        { label:'维修站', x:0.15,y:0.50, w:0.14,h:0.14, floors:1 },
+      ],
+      spawns: [{ x:0.05,y:0.30 },{ x:0.85,y:0.60 }],
+      extracts: [],
+      hotZones: [
+        { x:0.40,y:0.40, r:0.10, label:'矿区主楼' },
+        { x:0.62,y:0.28, r:0.07, label:'火车沿线' },
+      ],
+      lootZones: []
+    },
+    {
+      id: 'fault', name: '断层', nameEn: 'Fault', tier: 'B',
+      size: '中型', zones: '山麓古城，浓雾', time: '~18分钟',
+      desc: '浓雾战场，山麓古城，视线受限', hasVehicles: true,
+      buildings: [
+        { label:'古城中心', x:0.30,y:0.30, w:0.40,h:0.35, floors:2, desc:'浓雾中古城建筑群' },
+        { label:'山麓哨塔', x:0.12,y:0.15, w:0.10,h:0.12, floors:2 },
+        { label:'断崖通道', x:0.65,y:0.60, w:0.18,h:0.12, floors:1 },
+      ],
+      spawns: [{ x:0.05,y:0.50 },{ x:0.80,y:0.25 }],
+      extracts: [],
+      hotZones: [{ x:0.45,y:0.45, r:0.14, label:'古城浓雾区' }],
+      lootZones: []
+    },
+    {
+      id: 'pyramid', name: '金字塔', nameEn: 'Pyramid', tier: 'A',
+      size: '中型', zones: '埃及风格', time: '~18分钟',
+      desc: '2025新增地图，金字塔主题战场', hasVehicles: true,
+      buildings: [
+        { label:'金字塔主体', x:0.30,y:0.25, w:0.40,h:0.35, floors:3, desc:'核心地标' },
+        { label:'神殿遗迹', x:0.12,y:0.55, w:0.18,h:0.18, floors:1 },
+        { label:'绿洲营地', x:0.70,y:0.55, w:0.16,h:0.16, floors:1 },
+      ],
+      spawns: [{ x:0.05,y:0.25 },{ x:0.80,y:0.25 }],
+      extracts: [],
+      hotZones: [{ x:0.45,y:0.42, r:0.12, label:'金字塔内部' }],
+      lootZones: []
+    },
+    {
+      id: 'frost', name: '余霜', nameEn: 'Frost', tier: 'B',
+      size: '中型', zones: '冰雪主题', time: '~18分钟',
+      desc: '2025新增地图，冰雪环境', hasVehicles: true,
+      buildings: [
+        { label:'冰原基地', x:0.25,y:0.30, w:0.50,h:0.30, floors:2, desc:'核心建筑群' },
+        { label:'冰冻湖面', x:0.35,y:0.65, w:0.30,h:0.15, floors:1, desc:'开阔冰面区域' },
+        { label:'气象站', x:0.70,y:0.15, w:0.14,h:0.14, floors:1 },
+      ],
+      spawns: [{ x:0.05,y:0.50 },{ x:0.85,y:0.55 }],
+      extracts: [],
+      hotZones: [{ x:0.45,y:0.40, r:0.12, label:'基地核心' }],
+      lootZones: []
+    },
+    {
+      id: 'storm-eye', name: '风暴眼', nameEn: 'Storm Eye', tier: 'C',
+      size: '大型', zones: '冷战导弹基地', time: '~25分钟',
+      desc: '进攻方坐牢图，高打低压制严重', hasVehicles: true,
+      buildings: [
+        { label:'A区入口', x:0.05,y:0.55, w:0.16,h:0.22, floors:1 },
+        { label:'导弹发射井', x:0.35,y:0.30, w:0.22,h:0.25, floors:3, desc:'核心建筑' },
+        { label:'C区高地', x:0.65,y:0.20, w:0.18,h:0.20, floors:2, desc:'防守方高打低' },
+        { label:'D区仓库', x:0.70,y:0.55, w:0.16,h:0.18, floors:1 },
+        { label:'E区终点', x:0.85,y:0.40, w:0.12,h:0.16, floors:1 },
+      ],
+      spawns: [{ x:0.02,y:0.65 }],
+      extracts: [],
+      hotZones: [{ x:0.42,y:0.38, r:0.10, label:'导弹井' },{ x:0.70,y:0.25, r:0.07, label:'C区压制' }],
+      lootZones: []
+    },
+    {
+      id: 'link-up', name: '贯穿', nameEn: 'Link Up', tier: 'C',
+      size: '小型', zones: '纯步战地下实验室', time: '~12分钟',
+      desc: '全模式评分最低，长隧道纯反应速度比拼', hasVehicles: false,
+      buildings: [
+        { label:'A点仓库', x:0.08,y:0.35, w:0.18,h:0.25, floors:1, desc:'墙体可破坏' },
+        { label:'隧道主通道', x:0.30,y:0.38, w:0.40,h:0.18, floors:1, desc:'长走廊绞肉区' },
+        { label:'B/C点实验室', x:0.72,y:0.30, w:0.22,h:0.35, floors:2, desc:'两个洞口架死' },
+      ],
+      spawns: [{ x:0.02,y:0.45 }],
+      extracts: [],
+      hotZones: [{ x:0.50,y:0.45, r:0.16, label:'隧道绞肉机' }],
+      lootZones: []
+    },
+  ]
+};
+
+// ==================== STATE ====================
+let currentMode = 'hazard';
+let currentMap = MAPS.hazard[0];
+let hoveredPoint = null;
+let mouseX = 0, mouseY = 0;
+
+// ==================== CANVAS SETUP ====================
+const canvas = document.getElementById('radarCanvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+const container = document.getElementById('radarContainer');
+
+function resize() {
+  const rect = container.getBoundingClientRect();
+  const size = Math.min(rect.width - 40, rect.height - 40, 900);
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+}
+window.addEventListener('resize', () => { resize(); draw(); });
+resize();
+
+// ==================== DRAWING FUNCTIONS ====================
+function tx(x) { return x * canvas.width; }
+function ty(y) { return y * canvas.height; }
+function ts(s) { return s * canvas.width; }
+
+function drawGrid() {
+  const s = canvas.width;
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 0.5;
+  const step = s / 20;
+  for (let i = 0; i <= 20; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * step, 0);
+    ctx.lineTo(i * step, s);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * step);
+    ctx.lineTo(s, i * step);
+    ctx.stroke();
+  }
+}
+
+function drawCompassRose() {
+  const s = canvas.width;
+  const cx = s - 50, cy = 50, r = 28;
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // N arrow
+  ctx.fillStyle = '#ff3d4f';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r + 4);
+  ctx.lineTo(cx - 5, cy - 2);
+  ctx.lineTo(cx + 5, cy - 2);
+  ctx.closePath();
+  ctx.fill();
+  // S arrow
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r - 4);
+  ctx.lineTo(cx - 5, cy + 2);
+  ctx.lineTo(cx + 5, cy + 2);
+  ctx.closePath();
+  ctx.fill();
+  // Labels
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('N', cx, cy - r - 4);
+}
+
+function drawScaleBar() {
+  const s = canvas.width;
+  const x = 40, y = s - 25;
+  const barW = ts(0.12);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + barW, y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y - 6);
+  ctx.lineTo(x, y + 6);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + barW, y - 6);
+  ctx.lineTo(x + barW, y + 6);
+  ctx.stroke();
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  const label = currentMap.size && currentMap.size.includes('大') ? '~120m' : currentMap.size && currentMap.size.includes('小') ? '~60m' : '~90m';
+  ctx.fillText(label, x + barW / 2, y - 8);
+}
+
+function drawTerrain() {
+  const s = canvas.width;
+  // Base terrain fill
+  ctx.fillStyle = '#0f1923';
+  ctx.fillRect(0, 0, s, s);
+
+  // Draw water areas
+  if (currentMap.terrain) {
+    currentMap.terrain.forEach(t => {
+      if (t.type === 'water') {
+        ctx.fillStyle = '#0a1a2e';
+        ctx.fillRect(tx(t.x), ty(t.y), ts(t.w), ts(t.h));
+        // Water ripples
+        ctx.strokeStyle = 'rgba(30,80,130,0.3)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 6; i++) {
+          const ry = ty(t.y) + ts(t.h) * (0.1 + i * 0.14);
+          ctx.beginPath();
+          ctx.moveTo(tx(t.x), ry);
+          ctx.bezierCurveTo(tx(t.x + t.w*0.25), ry + 3, tx(t.x + t.w*0.75), ry - 3, tx(t.x + t.w), ry);
+          ctx.stroke();
+        }
+      }
+    });
+  }
+
+  // Draw road outlines
+  if (currentMap.terrain) {
+    currentMap.terrain.forEach(t => {
+      if (t.type === 'road') {
+        ctx.fillStyle = '#1a2430';
+        ctx.fillRect(tx(t.x), ty(t.y), ts(t.w), ts(t.h));
+        // Dashed center line
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.setLineDash([8, 12]);
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(tx(t.x), ty(t.y + t.h/2));
+        ctx.lineTo(tx(t.x + t.w), ty(t.y + t.h/2));
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+  }
+}
+
+function drawBuilding(b, index) {
+  const x = tx(b.x), y = ty(b.y);
+  const w = ts(b.w), h = ts(b.h);
+  const isHovered = hoveredPoint && hoveredPoint.type === 'building' && hoveredPoint.index === index;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(x + 3, y + 3, w, h);
+
+  // Building body
+  const isHighValue = b.highValue;
+  if (isHovered) {
+    ctx.fillStyle = isHighValue ? '#3a2a00' : '#2a3040';
+  } else {
+    ctx.fillStyle = isHighValue ? '#2a2000' : '#1a2030';
+  }
+  ctx.fillRect(x, y, w, h);
+
+  // 3D-like roof offset for buildings with floors > 1
+  if (b.floors > 1) {
+    const roofOffset = Math.min(b.floors * 1.5, 6);
+    ctx.fillStyle = isHovered
+      ? (isHighValue ? '#4a3500' : '#344050')
+      : (isHighValue ? '#352800' : '#222d3d');
+    ctx.fillRect(x + roofOffset, y - roofOffset, w, h);
+    // Sides for 3D effect
+    ctx.fillStyle = isHighValue ? '#352800' : '#1c2636';
+    ctx.fillRect(x + w, y - roofOffset, roofOffset, h + roofOffset);
+    ctx.fillStyle = isHighValue ? '#2a2000' : '#151d2a';
+    ctx.fillRect(x + roofOffset, y + h, w, roofOffset);
+  }
+
+  // Border
+  ctx.strokeStyle = isHovered
+    ? (isHighValue ? '#ffab00' : '#00e5ff')
+    : (isHighValue ? 'rgba(255,171,0,0.4)' : 'rgba(255,255,255,0.15)');
+  ctx.lineWidth = isHovered ? 2 : 1;
+  ctx.strokeRect(x, y, w, h);
+
+  // Floor indicator dots on top-left
+  if (b.floors > 1) {
+    for (let i = 0; i < Math.min(b.floors, 5); i++) {
+      ctx.fillStyle = isHighValue ? '#ffab00' : '#00e5ff';
+      ctx.beginPath();
+      ctx.arc(x + 8 + i * 8, y + 10, 2, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // Label
+  ctx.fillStyle = isHovered ? '#fff' : (isHighValue ? '#ffcc80' : '#c8ccd4');
+  ctx.font = `${isHovered ? 'bold ' : ''}${Math.max(10, Math.min(13, w/8))}px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(b.label, x + w/2, y + h/2 + 4);
+}
+
+function drawSpawnPoints() {
+  currentMap.spawns.forEach((sp, i) => {
+    const x = tx(sp.x), y = ty(sp.y);
+    const isHovered = hoveredPoint && hoveredPoint.type === 'spawn' && hoveredPoint.index === i;
+    const r = isHovered ? 7 : 5;
+    // Outer glow
+    const grad = ctx.createRadialGradient(x, y, r*0.5, x, y, r*2.5);
+    grad.addColorStop(0, 'rgba(0,230,118,0.6)');
+    grad.addColorStop(1, 'rgba(0,230,118,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r*2.5, 0, Math.PI*2);
+    ctx.fill();
+    // Dot
+    ctx.fillStyle = '#00e676';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (isHovered) {
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`出生点 #${i+1}`, x + 10, y + 4);
+    }
+  });
+}
+
+function drawExtracts() {
+  currentMap.extracts.forEach((ex, i) => {
+    const x = tx(ex.x), y = ty(ex.y);
+    const isHovered = hoveredPoint && hoveredPoint.type === 'extract' && hoveredPoint.index === i;
+    const size = isHovered ? 12 : 9;
+    // Diamond
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI/4);
+    ctx.fillStyle = ex.type === '拉闸' || ex.type === '双拉闸' ? '#448aff'
+      : ex.type === '丢包' ? '#ff6d00'
+      : ex.type === '直升机' ? '#e040fb'
+      : ex.type === '付费' ? '#ffd740'
+      : ex.type === '管道' ? '#69f0ae'
+      : '#448aff';
+    ctx.fillRect(-size, -size, size*2, size*2);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(-size, -size, size*2, size*2);
+    ctx.restore();
+
+    if (isHovered) {
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${ex.label} [${ex.type}]`, x + 14, y + 4);
+    }
+  });
+}
+
+function drawHotZones() {
+  currentMap.hotZones.forEach((hz, i) => {
+    const x = tx(hz.x), y = ty(hz.y);
+    const r = ts(hz.r);
+    // Pulsing effect - outer ring
+    const grad = ctx.createRadialGradient(x, y, r*0.3, x, y, r);
+    grad.addColorStop(0, 'rgba(255,61,79,0.15)');
+    grad.addColorStop(0.5, 'rgba(255,61,79,0.08)');
+    grad.addColorStop(1, 'rgba(255,61,79,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(255,61,79,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Label
+    ctx.fillStyle = 'rgba(255,61,79,0.8)';
+    ctx.font = 'bold 10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(hz.label, x, y - r - 4);
+  });
+}
+
+function drawLootZones() {
+  currentMap.lootZones.forEach((lz, i) => {
+    const x = tx(lz.x), y = ty(lz.y);
+    const r = ts(lz.r);
+    // Fill
+    const grad = ctx.createRadialGradient(x, y, r*0.2, x, y, r);
+    grad.addColorStop(0, 'rgba(255,109,0,0.25)');
+    grad.addColorStop(1, 'rgba(255,109,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(255,109,0,0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // $ icon
+    ctx.fillStyle = '#ff6d00';
+    ctx.font = 'bold 10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('$', x, y + 3);
+  });
+}
+
+function drawTitle() {
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(currentMap.name, 24, 36);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '12px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText(currentMap.nameEn + ' · ' + (currentMap.desc || ''), 24, 54);
+
+  // Difficulty stars
+  if (currentMap.difficulty) {
+    for (let i = 0; i < 5; i++) {
+      ctx.fillStyle = i < currentMap.difficulty ? '#ff3d4f' : '#333';
+      ctx.font = '14px "Segoe UI"';
+      ctx.textAlign = 'left';
+      ctx.fillText('★', 24 + i * 18, 74);
+    }
+  }
+  // Warfare tier
+  if (currentMap.tier) {
+    ctx.fillStyle = currentMap.tier === 'S' ? '#00e676' : currentMap.tier === 'A' ? '#76ff03' : currentMap.tier === 'B' ? '#ffab00' : '#ff3d4f';
+    ctx.font = 'bold 16px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Tier ' + currentMap.tier, 24, 74);
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
+  drawTerrain();
+
+  // Draw buildings
+  currentMap.buildings.forEach((b, i) => drawBuilding(b, i));
+
+  // Draw zones
+  drawHotZones();
+  drawLootZones();
+
+  // Draw points
+  drawSpawnPoints();
+  drawExtracts();
+
+  // UI overlays
+  drawCompassRose();
+  drawScaleBar();
+  drawTitle();
+
+  // Watermark
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.font = 'bold 24px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('TACTICAL RADAR', canvas.width - 20, canvas.height - 10);
+}
+
+// ==================== INTERACTION ====================
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  mouseX = (e.clientX - rect.left) * scaleX;
+  mouseY = (e.clientY - rect.top) * scaleY;
+
+  const nx = mouseX / canvas.width;
+  const ny = mouseY / canvas.height;
+  const threshold = 0.03;
+
+  hoveredPoint = null;
+
+  // Check buildings
+  for (let i = currentMap.buildings.length - 1; i >= 0; i--) {
+    const b = currentMap.buildings[i];
+    if (nx >= b.x - threshold && nx <= b.x + b.w + threshold &&
+        ny >= b.y - threshold && ny <= b.y + b.h + threshold) {
+      hoveredPoint = { type: 'building', index: i, data: b };
+      break;
+    }
+  }
+
+  // Check spawns
+  if (!hoveredPoint) {
+    for (let i = 0; i < currentMap.spawns.length; i++) {
+      const sp = currentMap.spawns[i];
+      if (Math.abs(nx - sp.x) < 0.015 && Math.abs(ny - sp.y) < 0.015) {
+        hoveredPoint = { type: 'spawn', index: i };
+        break;
+      }
+    }
+  }
+
+  // Check extracts
+  if (!hoveredPoint) {
+    for (let i = 0; i < currentMap.extracts.length; i++) {
+      const ex = currentMap.extracts[i];
+      if (Math.abs(nx - ex.x) < 0.02 && Math.abs(ny - ex.y) < 0.02) {
+        hoveredPoint = { type: 'extract', index: i, data: ex };
+        break;
+      }
+    }
+  }
+
+  // Tooltip
+  if (hoveredPoint && hoveredPoint.data) {
+    const d = hoveredPoint.data;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 16) + 'px';
+    tooltip.style.top = (e.clientY - 8) + 'px';
+    let html = `<strong>${d.label}</strong>`;
+    if (d.floors) html += `<br>楼层: ${d.floors}层`;
+    if (d.desc) html += `<br>${d.desc}`;
+    if (d.highValue) html += `<br><span style="color:#ffab00">⚠ 高价值区域</span>`;
+    if (d.type) html += `<br>类型: ${d.type}`;
+    tooltip.innerHTML = html;
+  } else {
+    tooltip.style.display = 'none';
+  }
+
+  draw();
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredPoint = null;
+  tooltip.style.display = 'none';
+  draw();
+});
+
+// ==================== MAP SELECTION ====================
+function updateInfoPanel() {
+  const panel = document.getElementById('infoPanel');
+  let html = `<div class="stat-grid">`;
+  if (currentMap.size) html += `<div class="stat-item"><span class="stat-label">地图尺寸</span><span class="stat-value">${currentMap.size}</span></div>`;
+  if (currentMap.spawns) html += `<div class="stat-item"><span class="stat-label">出生点</span><span class="stat-value">${currentMap.spawns}个</span></div>`;
+  if (currentMap.players) html += `<div class="stat-item"><span class="stat-label">对局人数</span><span class="stat-value">${currentMap.players}</span></div>`;
+  if (currentMap.entryFee) html += `<div class="stat-item"><span class="stat-label">战备门槛</span><span class="stat-value">${currentMap.entryFee}</span></div>`;
+  if (currentMap.modes) html += `<div class="stat-item"><span class="stat-label">可用模式</span><span class="stat-value">${currentMap.modes.join(' / ')}</span></div>`;
+  if (currentMap.time) html += `<div class="stat-item"><span class="stat-label">对局时长</span><span class="stat-value">${currentMap.time}</span></div>`;
+  if (currentMap.zones) html += `<div class="stat-item"><span class="stat-label">战区推进</span><span class="stat-value">${currentMap.zones}</span></div>`;
+  if (currentMap.tier) html += `<div class="stat-item"><span class="stat-label">梯队评级</span><span class="stat-value" style="color:${currentMap.tier==='S'?'#00e676':currentMap.tier==='A'?'#76ff03':currentMap.tier==='B'?'#ffab00':'#ff3d4f'}">Tier ${currentMap.tier}</span></div>`;
+  html += `</div>`;
+
+  html += `<div class="legend-row">`;
+  html += `<div class="legend-dot spawn">出生点</div>`;
+  html += `<div class="legend-dot extract">撤离点</div>`;
+  html += `<div class="legend-dot loot">高价值物资</div>`;
+  html += `<div class="legend-dot danger">激烈交火区</div>`;
+  if (currentMap.difficulty) html += `<div class="legend-dot boss">首领/BOSS</div>`;
+  html += `</div>`;
+
+  panel.innerHTML = html;
+}
+
+function selectMap(mapId) {
+  const allMaps = [...MAPS.hazard, ...MAPS.warfare];
+  currentMap = allMaps.find(m => m.id === mapId) || MAPS.hazard[0];
+  renderSidebar();
+  updateInfoPanel();
+  draw();
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const maps = currentMode === 'hazard' ? MAPS.hazard : MAPS.warfare;
+  let html = `<div class="sidebar-section">${currentMode === 'hazard' ? '烽火地带 · 危险行动' : '全面战场 · 大战场'}</div>`;
+
+  maps.forEach(m => {
+    const active = currentMap && currentMap.id === m.id ? ' active' : '';
+    const difficultyColor = m.difficulty
+      ? ['#00e676','#76ff03','#ffab00','#ff6d00','#ff3d4f'][m.difficulty - 1]
+      : (m.tier === 'S' ? '#00e676' : m.tier === 'A' ? '#76ff03' : m.tier === 'B' ? '#ffab00' : '#ff3d4f');
+    html += `
+      <div class="map-item${active}" data-map="${m.id}">
+        <span class="difficulty-dot" style="background:${difficultyColor}"></span>
+        <span class="map-name">${m.name}</span>
+        <span class="map-mode">${m.modes ? m.modes[m.modes.length-1] : m.tier+'级'}</span>
+      </div>`;
+  });
+
+  sidebar.innerHTML = html;
+
+  // Click handlers
+  sidebar.querySelectorAll('.map-item').forEach(item => {
+    item.addEventListener('click', () => selectMap(item.dataset.map));
+  });
+}
+
+// Mode tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    const maps = currentMode === 'hazard' ? MAPS.hazard : MAPS.warfare;
+    selectMap(maps[0].id);
+  });
+});
+
+// ==================== INIT ====================
+resize();
+renderSidebar();
+updateInfoPanel();
+draw();
+</script>
+</body>
+</html>
